@@ -5,8 +5,8 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-esp-idf-hal = { version = "0.41", default-features = false, features = ["critical-section", "embassy-sync", "edge-executor"] }
-esp-idf-svc = { version = "0.46", default-features = false, features = ["alloc", "embassy-time-driver", "embassy-time-isr-queue"] }
+esp-idf-hal = { version = "0.41", default-features = false }
+esp-idf-svc = { version = "0.46", default-features = false }
 embedded-svc = { version = "0.25", default-features = false }
 esp-idf-sys = { version = "0.33", default-features = false }
 log = { version = "0.4", default-features = false }

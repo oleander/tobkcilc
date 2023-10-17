@@ -3,7 +3,6 @@
 extern crate esp32_nimble;
 extern crate log;
 
-use log::{info, warn};
 use std::sync::Arc;
 
 use esp32_nimble::{enums::*, hid::*, utilities::mutex::Mutex, BLECharacteristic, BLEDevice, BLEHIDDevice, BLEServer};
