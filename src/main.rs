@@ -2,14 +2,14 @@
 #![warn(unused_must_use)]
 #![no_main]
 
-
 extern crate log;
 
 mod keyboard;
-use keyboard::Keyboard;
-use keyboard::media_keys::*;
-use log::{info, warn};
+
 use esp_idf_hal::delay::Ets;
+use keyboard::media_keys::*;
+use keyboard::Keyboard;
+use log::{info, warn};
 
 #[no_mangle]
 fn app_main() {
@@ -19,11 +19,10 @@ fn app_main() {
   info!("Starting clickbot loop");
   let mut keyboard = Keyboard::new();
 
-
   info!("Running tests 10 times with 5 second delay");
   for _ in 0..10 {
-      keyboard.send_media_key(CONSUMER_CONTROL_CONFIGURATION);
-      Ets::delay_ms(5000);
+    keyboard.send_media_key(CONSUMER_CONTROL_CONFIGURATION);
+    Ets::delay_ms(5000);
   }
 
   info!("Starting main clickbot loop");
