@@ -1,0 +1,30 @@
+
+[package]
+name = "u701"
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+esp-idf-hal = { version = "0.41", default-features = false, features = ["critical-section", "embassy-sync", "edge-executor"] }
+esp-idf-svc = { version = "0.46", default-features = false, features = ["alloc", "embassy-time-driver", "embassy-time-isr-queue"] }
+embedded-svc = { version = "0.25", default-features = false }
+esp-idf-sys = { version = "0.33", default-features = false }
+log = { version = "0.4", default-features = false }
+esp-idf-alloc = "0.1.1"
+esp32-nimble = "0.2.2"
+hashbrown = "0.14.1"
+lazy_static = { version = "1.4.0", default-features = false, features = ["spin_no_std"] }
+bare-metal = "1.0.0"
+embassy-time = { version = "0.1", features = ["tick-hz-1_000_000"] }
+spin = "0.9.8"
+thingbuf = { version = "0.1", default-features = false, features = ["static"] }
+
+[package.metadata.esp-idf-sys]
+esp_idf_version = "branch:release/v5.0"
+
+[profile.release]
+debug = true
+
+
+[build-dependencies]
+embuild = "0.31.2"

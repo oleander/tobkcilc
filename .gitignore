@@ -1,0 +1,10 @@
+/.vscode
+/.embuild
+/target
+/Cargo.lock
+/build
+.pio
+CMakeFiles/
+.env
+sdkconfig*
+!sdkconfig.defaults
