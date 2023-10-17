@@ -7,28 +7,27 @@ extern crate log;
 
 mod keyboard;
 use keyboard::Keyboard;
+use keyboard::media_keys::*;
 use log::{info, warn};
-use esp_idf_hal::delay::Ets::delay_ms;
+use esp_idf_hal::delay::Ets;
 
 #[no_mangle]
 fn app_main() {
   esp_idf_sys::link_patches();
   esp_idf_svc::log::EspLogger::initialize_default();
 
-  info!("Starting ESP32 keyboard driver");
-
   let mut keyboard = Keyboard::new();
 
-  info!("Waiting for keyboard to connect");
+  info!("Starting clickbot loop");
 
   loop {
     if keyboard.connected() {
       info!("Sending awake command");
-      keyboard.send_media_key(keyboard::media_keys::EMAIL_READER);
-      delay_ms(5 * 1000 * 60); // 5 minutes
+      keyboard.send_media_key(EMAIL_READER);
+      Ets::delay_ms(5 * 1000 * 60); // 5 minutes
     } else {
       info!("Waiting for keyboard to connect");
-      delay_ms(5000);
+      Ets::delay_ms(5000);
     }
   }
 }

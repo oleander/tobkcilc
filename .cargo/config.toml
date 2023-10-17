@@ -7,7 +7,7 @@ runner = "espflash flash -b 921600 -p /dev/cu.wchusbserial10 --monitor"
 rustflags = ["-C", "default-linker-libraries", "-Z", "macro-backtrace", "--cfg", "espidf_time64"]
 
 [unstable]
-build-std = ["core", "panic_abort", "alloc"]
+build-std = ["std", "panic_abort"]
 
 [env]
 RUST_BACKTRACE = "1"

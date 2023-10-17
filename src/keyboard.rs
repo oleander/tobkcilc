@@ -1,15 +1,12 @@
 #![allow(dead_code)]
 
-extern crate alloc;
 extern crate esp32_nimble;
-extern crate lazy_static;
 extern crate log;
 
 use log::{info, warn};
+use std::sync::Arc;
 
-use alloc::sync::Arc;
 use esp32_nimble::{enums::*, hid::*, utilities::mutex::Mutex, BLECharacteristic, BLEDevice, BLEHIDDevice, BLEServer};
-use lazy_static::lazy_static;
 
 const KEYBOARD_ID: u8 = 0x01;
 const MEDIA_KEYS_ID: u8 = 0x02;
@@ -257,13 +254,6 @@ impl Keyboard {
     device.security().set_auth(true, false, false).set_io_cap(SecurityIOCap::NoInputNoOutput);
 
     let server = device.get_server();
-
-    server.on_disconnect(|_conn_handle, _reason| {
-      warn!("Client disconnected, will restart in 5 seconds");
-      esp_idf_hal::delay::Ets::delay_ms(5000);
-      unsafe { esp_idf_sys::esp_restart(); };
-    });
-
     let mut hid = BLEHIDDevice::new(server);
 
     let input_keyboard = hid.input_report(KEYBOARD_ID);
