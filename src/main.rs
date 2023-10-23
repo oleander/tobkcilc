@@ -30,9 +30,11 @@ fn app_main() {
   info!("Running tests 10 times with 5 second delay");
   let mut connected = false;
 
-  for _ in 0..10 {
-    keyboard.write("A");
-    Ets::delay_ms(5000);
+  if keyboard.connected() {
+    for _ in 0..10 {
+      keyboard.write("A");
+      Ets::delay_ms(5000);
+    }
   }
 
   info!("Starting main clickbot loop");
