@@ -11,6 +11,15 @@ use keyboard::media_keys::*;
 use keyboard::Keyboard;
 use log::{info, warn};
 
+macro_rules! halt {
+    ($($arg:tt)*) => ({
+        warn!($($arg)*);
+        warn!("Rebooting in 5 seconds...");
+        esp_idf_hal::delay::Ets::delay_ms(5000);
+        unsafe { esp_idf_sys::esp_restart(); };
+    })
+}
+
 #[no_mangle]
 fn app_main() {
   esp_idf_sys::link_patches();
@@ -20,38 +29,26 @@ fn app_main() {
   let mut keyboard = Keyboard::new();
 
   info!("Running tests 10 times with 5 second delay");
-  let all_events = vec![
-    STOP,
-    WWW_HOME,
-    LOCAL_MACHINE_BROWSER,
-    CALCULATOR,
-    WWW_BOOKMARKS,
-    WWW_SEARCH,
-    WWW_STOP,
-    WWW_BACK,
-    CONSUMER_CONTROL_CONFIGURATION,
-    EMAIL_READER,
-  ];
+  let mut connected = false;
+
+  for _ in 0..10 {
+    keyboard.write("A");
+    Ets::delay_ms(5000);
+  }
 
   info!("Starting main clickbot loop");
+
   loop {
     if keyboard.connected() {
+      connected = true;
       info!("Sending awake command");
-      // keyboard.send_media_key(WWW_HOME);
-
       keyboard.write("A");
-
-      // for event in &all_events {
-      //   info!("Sending event {:?}", event);
-      //   keyboard.send_media_key(*event);
-      //   Ets::delay_ms(5000);
-      // }
-
-      Ets::delay_ms(1 * 1000 * 60); // 5 minutes
-      // Ets::delay_ms(5000);
+      Ets::delay_ms(1 * 1000 * 60);
     } else {
       info!("Waiting for keyboard to connect");
       Ets::delay_ms(5000);
+    } else if connected {
+      halt!("Disconnected, will restart");
     }
   }
 }

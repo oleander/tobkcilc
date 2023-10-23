@@ -269,10 +269,10 @@ impl Keyboard {
 
     let ble_advertising = device.get_advertising();
     ble_advertising
-      .name("tobkcilc")
+      .name("tob")
       .appearance(0x03C1)
       .add_service_uuid(hid.hid_service().lock().uuid())
-      .scan_response(true);
+      .scan_response(false);
     ble_advertising.start().unwrap();
 
     Self {
