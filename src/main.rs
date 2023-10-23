@@ -7,7 +7,6 @@ extern crate log;
 mod keyboard;
 
 use esp_idf_hal::delay::Ets;
-use keyboard::media_keys::*;
 use keyboard::Keyboard;
 use log::{info, warn};
 
@@ -44,11 +43,12 @@ fn app_main() {
       info!("Sending awake command");
       keyboard.write("A");
       Ets::delay_ms(1 * 1000 * 60);
+      info!("Waiting for keyboard to connect");
+    } else if connected {
+      halt!("Disconnected, will restart");
     } else {
       info!("Waiting for keyboard to connect");
       Ets::delay_ms(5000);
-    } else if connected {
-      halt!("Disconnected, will restart");
     }
   }
 }
