@@ -14,12 +14,12 @@ impl InputState {
     use MetaButton::*;
 
     match id {
-      0 => Some(Meta(M1)),
-      1 => Some(Regular(A2)),
-      3 => Some(Regular(A3)),
-      4 => Some(Regular(A4)),
-      5 => Some(Meta(M2)),
-      8 => Some(Regular(B2)),
+      1 => Some(Meta(M1)),
+      3 => Some(Regular(A2)),
+      4 => Some(Regular(A3)),
+      5 => Some(Regular(A4)),
+      6 => Some(Meta(M2)),
+      7 => Some(Regular(B2)),
       9 => Some(Regular(B3)),
       10 => Some(Regular(B4)),
       _ => None
