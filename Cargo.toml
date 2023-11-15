@@ -28,4 +28,4 @@ esp_idf_version = "tag:v4.4.6"
 debug = true
 
 [build-dependencies]
-embuild = "0.31.2"
+embuild = "0.31.4"
