@@ -14,18 +14,26 @@ mod types;
 use crate::constants::*;
 use crate::types::*;
 use anyhow::Result;
+use esp_idf_hal::gpio;
 use esp_idf_hal::task;
 
-use esp_idf_sys::gpio_install_isr_service;
+use core::ffi::c_void;
 use core::option::Option::{None, Some};
-use esp_idf_hal::prelude::Peripherals;
-use esp_idf_sys::gpio_isr_handler_add;
-use esp_idf_sys::gpio_set_pull_mode;
 use core::result::Result::Ok;
 use esp_idf_hal::gpio::Pull;
 use esp_idf_hal::gpio::*;
-use core::ffi::c_void;
+use esp_idf_hal::prelude::Peripherals;
+use esp_idf_sys::gpio_install_isr_service;
+use esp_idf_sys::gpio_isr_handler_add;
+use esp_idf_sys::gpio_set_pull_mode;
 use log::*;
+
+// a macro named pin!
+macro_rules! pin {
+  ($pin:path) => {
+    PinDriver::input(&mut $pin).unwrap()
+  };
+}
 
 #[no_mangle]
 fn app_main() {
@@ -38,10 +46,13 @@ fn app_main() {
   let pins = peripherals.pins;
 
   // info!("Setting up pin 0");
-  let mut pin0 = pins.gpio2;
+
+  // let pins = [pins.gpio0, pins.gpio1];
+  let mut gpio0 = pins.gpio0;
+  let mut input = pin!(gpio0);
 
   // info!("Setting up pin 0");
-  let mut input = PinDriver::input(&mut pin0).unwrap();
+  // let mut input = PinDriver::input(&mut pin0).unwrap();
 
   input.set_interrupt_type(InterruptType::LowLevel).unwrap();
 
@@ -54,10 +65,11 @@ fn app_main() {
 
   info!("Installing ISR service");
   let x = unsafe {
-    input.subscribe(move || {
-      task::notify(handle, 0x01);
-    }).unwrap();
-
+    input
+      .subscribe(move || {
+        task::notify(handle, 0x01);
+      })
+      .unwrap();
   };
 
   loop {
