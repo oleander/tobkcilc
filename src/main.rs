@@ -73,9 +73,9 @@ fn app_main() {
                     // pin!(pins.gpio7);
                     // pin!(pins.gpio8); // LED pin
   pin!(pins.gpio9);
-  // pin!(pins.gpio10);
-  // pin!(pins.gpio18);
-  // pin!(pins.gpio19);
+  pin!(pins.gpio10);
+  pin!(pins.gpio18);
+  pin!(pins.gpio19);
   // pin!(pins.gpio21);
 
   loop {
@@ -112,12 +112,18 @@ fn handle_button_click(curr_state: InputState) -> Result<()> {
   info!("New state: {:?}", *state_guard);
   info!("New event: {:?}", event);
 
+  let keyboard = KEYBOARD.lock().unwrap();
+
+  if !keyboard.connected() {
+    bail!("Phone is not connected");
+  }
+
   match event {
     Some(BluetoothEvent::MediaControlKey(key)) => {
-      // keyboard.send_media_key(key.into());
+      keyboard.send_media_key(key.into());
     },
     Some(BluetoothEvent::Letter(letter)) => {
-      // keyboard.send_shortcut(letter);
+      keyboard.send_shortcut(letter);
     },
     None => {
       warn!("No event for button click: {:?}", curr_state);
