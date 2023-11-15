@@ -2,7 +2,7 @@ use hashbrown::HashMap;
 use std::sync::Mutex;
 use lazy_static::*;
 use crate::types::{BluetoothEvent, InputState, *};
-// use crate::keyboard::Keyboard;
+use crate::keyboard::Keyboard;
 use crate::types::ButtonIdentifier::*;
 
 pub const VOLUME_DOWN_KEY: MediaControlKey = MediaControlKey(64, 0);
@@ -50,5 +50,5 @@ lazy_static! {
   };
 
   pub static ref CURRENT_INPUT_STATE: Mutex<InputState> = Mutex::new(InputState::Undefined);
-  // pub static ref KEYBOARD: Mutex<Keyboard> = Mutex::new(Keyboard::new());
+  pub static ref KEYBOARD: Mutex<Keyboard> = Mutex::new(Keyboard::new());
 }

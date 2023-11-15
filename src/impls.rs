@@ -9,19 +9,19 @@ impl From<MediaControlKey> for [u8; 2] {
 }
 
 impl InputState {
-  pub fn from(id: u8) -> Option<Self> {
+  pub fn from(id: u32) -> Option<Self> {
     use InputState::*;
     use MetaButton::*;
 
     match id {
-      1 => Some(Meta(M1)),
-      2 => Some(Regular(A2)),
+      0 => Some(Meta(M1)),
+      1 => Some(Regular(A2)),
       3 => Some(Regular(A3)),
       4 => Some(Regular(A4)),
       5 => Some(Meta(M2)),
-      6 => Some(Regular(B2)),
-      7 => Some(Regular(B3)),
-      8 => Some(Regular(B4)),
+      8 => Some(Regular(B2)),
+      9 => Some(Regular(B3)),
+      10 => Some(Regular(B4)),
       _ => None
     }
   }
@@ -122,5 +122,11 @@ mod tests {
     assert_eq!(META_BUTTON_EVENTS_TWO.get(&B2), Some(&BluetoothEvent::Letter(14)));
     assert_eq!(META_BUTTON_EVENTS_TWO.get(&B3), Some(&BluetoothEvent::Letter(15)));
     assert_eq!(META_BUTTON_EVENTS_TWO.get(&B4), Some(&BluetoothEvent::Letter(16)));
+  }
+}
+
+impl From<InvalidButtonTransitionError> for anyhow::Error {
+  fn from(e: InvalidButtonTransitionError) -> Self {
+    anyhow::anyhow!("Invalid button transition: {:?}", e)
   }
 }

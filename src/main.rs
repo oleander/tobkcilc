@@ -8,21 +8,23 @@ extern crate log;
 
 mod constants;
 mod impls;
-// mod keyboard;
+mod keyboard;
 mod types;
 
 use crate::constants::*;
-use esp_idf_hal::task;
 use crate::types::*;
+use anyhow::bail;
 use anyhow::Result;
+use esp_idf_hal::task;
 
-use esp_idf_hal::prelude::Peripherals;
+use crate::constants::KEYBOARD;
 use core::option::Option::Some;
 use core::result::Result::Ok;
 use esp_idf_hal::gpio::Pull;
 use esp_idf_hal::gpio::*;
-use std::time::Duration;
+use esp_idf_hal::prelude::Peripherals;
 use log::*;
+use std::time::Duration;
 
 macro_rules! pin {
   ($pin:expr) => {
@@ -55,18 +57,21 @@ fn app_main() {
   let peripherals = Peripherals::take().unwrap();
   let mut pins = peripherals.pins;
 
+  // let is_connected = KEYBOARD.lock().unwrap().connected();
+  // info!("Is keyboard connected: {}", is_connected);
+
   info!("Initializing pins ...");
   // GPIO0 has an internal pull-up resistor and is typically used to determine the boot mode at reset, but it can be used as a general input if it is not pulled LOW during boot
-  pin!(pins.gpio0);
-  pin!(pins.gpio1);
-  // Also used for boot mode, similar caution as GPIO0
-  // pin!(pins.gpio2); 
+  pin!(pins.gpio0); // OK
+  pin!(pins.gpio1); // OK
+                    // Also used for boot mode, similar caution as GPIO0
+                    // pin!(pins.gpio2);
   pin!(pins.gpio3);
   pin!(pins.gpio4);
-  pin!(pins.gpio5);
-  // pin!(pins.gpio6);
-  // pin!(pins.gpio7);
-  pin!(pins.gpio8);
+  pin!(pins.gpio5); // OK
+                    // pin!(pins.gpio6);
+                    // pin!(pins.gpio7);
+                    // pin!(pins.gpio8); // LED pin
   pin!(pins.gpio9);
   // pin!(pins.gpio10);
   // pin!(pins.gpio18);
@@ -78,26 +83,20 @@ fn app_main() {
       esp_idf_sys::esp_task_wdt_reset();
     }
 
-    if let Some(pin_id) = task::wait_notification(duration) {
-      info!("Notification received: {}", pin_id);
+    let Some(pin_id) = task::wait_notification(duration) else {
+      continue;
+    };
+
+    let Some(curr_state) = InputState::from(pin_id) else {
+      warn!("Invalid button index: {}", pin_id);
+      continue;
+    };
+
+    debug!("Received button click: {:?}", curr_state);
+
+    if let Err(e) = handle_button_click(curr_state) {
+      error!("Error handling button click: {:?}", e);
     }
-  }
-}
-
-#[no_mangle]
-extern "C" fn rust_handle_button_click(index: u8) {
-  let Some(curr_state) = InputState::from(index) else {
-    return error!("Invalid button index: {}", index);
-  };
-
-  if let Err(e) = handle_button_click(curr_state) {
-    error!("Error handling button click: {:?}", e);
-  }
-}
-
-impl From<InvalidButtonTransitionError> for anyhow::Error {
-  fn from(e: InvalidButtonTransitionError) -> Self {
-    anyhow::anyhow!("Invalid button transition: {:?}", e)
   }
 }
 
@@ -113,19 +112,17 @@ fn handle_button_click(curr_state: InputState) -> Result<()> {
   info!("New state: {:?}", *state_guard);
   info!("New event: {:?}", event);
 
-  // let keyboard = KEYBOARD.lock().unwrap();
-
-  // match event {
-  //   Some(BluetoothEvent::MediaControlKey(key)) => {
-  //     keyboard.send_media_key(key.into());
-  //   },
-  //   Some(BluetoothEvent::Letter(letter)) => {
-  //     KEYBOARD.lock().send_shortcut(letter);
-  //   },
-  //   None => {
-  //     warn!("No event for button click: {:?}", curr_state);
-  //   },
-  // };
+  match event {
+    Some(BluetoothEvent::MediaControlKey(key)) => {
+      // keyboard.send_media_key(key.into());
+    },
+    Some(BluetoothEvent::Letter(letter)) => {
+      // keyboard.send_shortcut(letter);
+    },
+    None => {
+      warn!("No event for button click: {:?}", curr_state);
+    },
+  };
 
   Ok(())
 }
