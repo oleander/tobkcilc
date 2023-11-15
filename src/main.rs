@@ -51,19 +51,27 @@ fn app_main() {
 
   info!("Starting up...");
 
+  let duration = Some(Duration::from_millis(100));
   let peripherals = Peripherals::take().unwrap();
   let mut pins = peripherals.pins;
 
   info!("Initializing pins ...");
+  // GPIO0 has an internal pull-up resistor and is typically used to determine the boot mode at reset, but it can be used as a general input if it is not pulled LOW during boot
   pin!(pins.gpio0);
-  // pin!(pins.gpio9);
+  pin!(pins.gpio1);
+  // Also used for boot mode, similar caution as GPIO0
+  // pin!(pins.gpio2); 
+  pin!(pins.gpio3);
+  pin!(pins.gpio4);
+  pin!(pins.gpio5);
+  // pin!(pins.gpio6);
+  // pin!(pins.gpio7);
+  pin!(pins.gpio8);
+  pin!(pins.gpio9);
   // pin!(pins.gpio10);
-  // pin!(pins.gpio14);
-  // pin!(pins.gpio15);
-  // pin!(pins.gpio16);
+  // pin!(pins.gpio18);
   // pin!(pins.gpio19);
-
-  let duration = Some(Duration::from_millis(100));
+  // pin!(pins.gpio21);
 
   loop {
     unsafe {
@@ -74,14 +82,6 @@ fn app_main() {
       info!("Notification received: {}", pin_id);
     }
   }
-
-  // info!("Installing ISR service: {:?}", x);
-  // info!("Result: {:?}", result);
-
-  // loop {
-  //   info!("Waiting for button click");
-  //   esp_idf_hal::delay::Ets::delay_ms(1000);
-  // }
 }
 
 #[no_mangle]
