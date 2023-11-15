@@ -1,13 +1,9 @@
 use hashbrown::HashMap;
-use spin::Mutex;
+use std::sync::Mutex;
 use lazy_static::*;
-use linked_list_allocator::LockedHeap;
 use crate::types::{BluetoothEvent, InputState, *};
 // use crate::keyboard::Keyboard;
 use crate::types::ButtonIdentifier::*;
-
-// #[global_allocator]
-// pub static GLOBAL_ALLOCATOR: LockedHeap = LockedHeap::empty();
 
 pub const VOLUME_DOWN_KEY: MediaControlKey = MediaControlKey(64, 0);
 pub const NEXT_TRACK: MediaControlKey = MediaControlKey(1, 0);

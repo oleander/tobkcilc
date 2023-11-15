@@ -3,7 +3,7 @@ use esp32_nimble::hid::*;
 use esp32_nimble::utilities::mutex::Mutex;
 use esp32_nimble::{BLECharacteristic, BLEDevice, BLEHIDDevice, BLEServer};
 use esp_idf_sys as _;
-use alloc::sync::Arc;
+use std::sync::Arc;
 
 const KEYBOARD_ID: u8 = 0x01;
 const MEDIA_KEYS_ID: u8 = 0x02;

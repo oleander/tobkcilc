@@ -1,13 +1,10 @@
 // #![no_std]
 #![no_main]
 
-extern crate alloc;
 extern crate anyhow;
 extern crate hashbrown;
 extern crate lazy_static;
-extern crate linked_list_allocator;
 extern crate log;
-extern crate spin;
 
 mod constants;
 mod impls;
