@@ -5,8 +5,13 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-spin = { version = "0.9.8", default-features = false, features = ["mutex", "spin_mutex"] }
-lazy_static = { version = "1.4.0", default-features = false, features = ["spin_no_std"] }
+spin = { version = "0.9.8", default-features = false, features = [
+    "mutex",
+    "spin_mutex",
+] }
+lazy_static = { version = "1.4.0", default-features = false, features = [
+    "spin_no_std",
+] }
 esp-idf-hal = { version = "0.41", default-features = false }
 esp-idf-svc = { version = "0.46", default-features = false }
 esp-idf-sys = { version = "0.33", default-features = false }
@@ -17,11 +22,10 @@ esp32-nimble = "0.2.2"
 hashbrown = "0.11.2"
 
 [package.metadata.esp-idf-sys]
-esp_idf_version = "branch:release/v5.0"
+esp_idf_version = "tag:v4.4.6"
 
 [profile.release]
 debug = true
-
 
 [build-dependencies]
 embuild = "0.31.2"
