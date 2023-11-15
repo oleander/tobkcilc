@@ -1,7 +1,8 @@
+use esp32_nimble::{BLECharacteristic, BLEDevice, BLEHIDDevice, BLEServer};
+use esp32_nimble::utilities::mutex::Mutex;
 use esp32_nimble::enums::*;
 use esp32_nimble::hid::*;
-use esp32_nimble::utilities::mutex::Mutex;
-use esp32_nimble::{BLECharacteristic, BLEDevice, BLEHIDDevice, BLEServer};
+use esp_idf_hal::delay;
 use esp_idf_sys as _;
 use std::sync::Arc;
 
@@ -116,19 +117,19 @@ impl Keyboard {
   }
 
   pub fn send_media_key(&self, keys: [u8; 2]) {
-    self.input_media_keys.lock().set_value(&keys).notify();
-    esp_idf_hal::delay::Ets::delay_ms(7);
-    self.input_media_keys.lock().set_value(&[0, 0]).notify();
+    let mut input = self.input_media_keys.lock();
+    input.set_value(&keys).notify();
+    delay::Ets::delay_ms(10);
+    input.set_value(&[0, 0]).notify();
   }
 
   pub fn send_shortcut(&self, offset: u8) {
     let lowercase_a = 0x04;
-    let uppercase_a = lowercase_a | SHIFT;
-    let uppercase_shortcut_letter = uppercase_a + offset;
-    let keys = [SHIFT, 0x00, 0x00, 0x00, 0x00, uppercase_shortcut_letter];
-
-    self.input_keyboard.lock().set_value(&keys).notify();
-    esp_idf_hal::delay::Ets::delay_ms(7);
-    self.input_keyboard.lock().set_value(&[0, 0, 0, 0, 0, 0]).notify();
+    let letter = lowercase_a + offset;
+    let keys = [0x02, 0, letter, 0, 0, 0, 0, 0];
+    let mut input = self.input_keyboard.lock();
+    input.set_value(&keys).notify();
+    delay::Ets::delay_ms(10);
+    input.set_value(&[0; 8]).notify();
   }
 }

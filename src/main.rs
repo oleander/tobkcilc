@@ -1,30 +1,29 @@
-// #![no_std]
 #![no_main]
 
-extern crate anyhow;
-extern crate hashbrown;
 extern crate lazy_static;
+extern crate hashbrown;
+extern crate anyhow;
 extern crate log;
 
 mod constants;
-mod impls;
 mod keyboard;
+mod impls;
 mod types;
 
 use crate::constants::*;
-use crate::types::*;
-use anyhow::bail;
-use anyhow::Result;
 use esp_idf_hal::task;
+use crate::types::*;
+use anyhow::Result;
+use anyhow::bail;
 
+use esp_idf_hal::prelude::Peripherals;
 use crate::constants::KEYBOARD;
 use core::option::Option::Some;
 use core::result::Result::Ok;
 use esp_idf_hal::gpio::Pull;
 use esp_idf_hal::gpio::*;
-use esp_idf_hal::prelude::Peripherals;
-use log::*;
 use std::time::Duration;
+use log::*;
 
 macro_rules! pin {
   ($pin:expr) => {
@@ -46,6 +45,8 @@ macro_rules! pin {
   };
 }
 
+use esp_idf_hal::delay;
+
 #[no_mangle]
 fn app_main() {
   esp_idf_sys::link_patches();
@@ -57,9 +58,30 @@ fn app_main() {
   let peripherals = Peripherals::take().unwrap();
   let mut pins = peripherals.pins;
 
-  let is_connected = KEYBOARD.lock().unwrap().connected();
-  info!("Is keyboard connected: {}", is_connected);
+  let keyboard = KEYBOARD.lock().unwrap();
+  while !keyboard.connected() {
+    info!("Waiting for keyboard to connect...");
+    delay::Ets::delay_ms(1000);
+  }
 
+  info!("Keyboard connected");
+  delay::Ets::delay_ms(1000);
+
+  info!("Sending the letter A");
+  keyboard.send_shortcut(0);
+  delay::Ets::delay_ms(1000);
+  info!("Sending the letter B");
+  keyboard.send_shortcut(1);
+
+  delay::Ets::delay_ms(1000);
+  info!("Pausing keyboard");
+  keyboard.send_media_key(PLAY_PAUSE.into());
+
+  delay::Ets::delay_ms(1000);
+  info!("Pausing keyboard");
+  keyboard.send_media_key(PLAY_PAUSE.into());
+
+  info!("Done!");
 
 
   info!("Initializing pins ...");
@@ -72,6 +94,7 @@ fn app_main() {
   pin!(pins.gpio9);
   pin!(pins.gpio10);
 
+  info!("Entering loop");
   loop {
     unsafe {
       esp_idf_sys::esp_task_wdt_reset();
