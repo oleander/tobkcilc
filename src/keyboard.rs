@@ -1,6 +1,3 @@
-// originally: https://github.com/T-vK/ESP32-BLE-Keyboard
-#![allow(dead_code)]
-
 use esp32_nimble::enums::*;
 use esp32_nimble::hid::*;
 use esp32_nimble::utilities::mutex::Mutex;

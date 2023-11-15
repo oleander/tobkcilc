@@ -9,16 +9,6 @@ extern crate linked_list_allocator;
 extern crate log;
 extern crate spin;
 
-// #[panic_handler]
-// fn panic(info: &core::panic::PanicInfo) -> ! {
-//   info!("Panic: {:?}", info);
-//   // esp_idf_hal::delay::Ets::delay_ms(1000);
-//   // unsafe {
-//   //   esp_idf_sys::esp_restart();
-//   // };
-//   loop {}
-// }
-
 mod constants;
 mod impls;
 // mod keyboard;
@@ -49,47 +39,47 @@ fn app_main() {
   esp_idf_sys::link_patches();
   esp_idf_svc::log::EspLogger::initialize_default();
 
-  info!("Starting up...");
+  // info!("Starting up...");
 
   let peripherals = Peripherals::take().unwrap();
   let pins = peripherals.pins;
 
-  info!("Setting up pin 0");
+  // info!("Setting up pin 0");
   let mut pin0 = pins.gpio2;
 
-  info!("Setting up pin 0");
+  // info!("Setting up pin 0");
   let mut input = PinDriver::input(&mut pin0).unwrap();
 
   input.set_interrupt_type(InterruptType::LowLevel).unwrap();
 
   let handle = task::current().unwrap();
 
-  info!("Subscribed to pin interrupt");
-  // input.set_pull(Pull::Up).unwrap();
+  // info!("Subscribed to pin interrupt");
+  input.set_pull(Pull::Up).unwrap();
 
-  // input.enable_interrupt().unwrap();
+  input.enable_interrupt().unwrap();
 
-  info!("Installing ISR service");
-  let x = unsafe {
-    input.subscribe(move || {
-      task::notify(handle, 0x01);
-    }).unwrap();
+  // info!("Installing ISR service");
+  // let x = unsafe {
+  //   input.subscribe(move || {
+  //     task::notify(handle, 0x01);
+  //   }).unwrap();
 
-  };
+  // };
 
   loop {
     // Reset the watchdog timer
-    info!("Resetting watchdog timer");
+    // info!("Resetting watchdog timer");
     unsafe {
       esp_idf_sys::esp_task_wdt_reset();
     }
 
     if let Some(_) = task::wait_notification(None) {
-      info!("Notification received");
+      // info!("Notification received");
     }
   }
 
-  info!("Installing ISR service: {:?}", x);
+  // info!("Installing ISR service: {:?}", x);
   // info!("Result: {:?}", result);
 
   // loop {

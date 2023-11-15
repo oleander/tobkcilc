@@ -1,20 +1,14 @@
 [build]
-# target = "riscv32imc-esp-espidf"
-# target = "riscv32imc-esp-espidf"
 target = "xtensa-esp32-espidf"
 
 [target.riscv32imc-esp-espidf]
-linker = "ldproxy"
 runner = "espflash flash -b 921600 -p /dev/tty.wchusbserial110 --monitor"
 rustflags = ["-C", "default-linker-libraries", "-Z", "macro-backtrace", "--cfg", "espidf_time64"]
 
 [target.xtensa-esp32-espidf]
-linker = "ldproxy"
 runner = "espflash flash -b 921600 -p /dev/cu.usbserial-0001 --monitor"
-rustflags = ["-C", "default-linker-libraries", "-Z", "macro-backtrace", "--cfg", "espidf_time64"]
+rustflags = ["-C", "default-linker-libraries", "-Z", "macro-backtrace"]
+linker = "ldproxy"
 
 [unstable]
 build-std = ["std", "panic_abort"]
-
-[env]
-RUST_BACKTRACE = "1"
