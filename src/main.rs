@@ -16,20 +16,16 @@ use crate::types::*;
 use anyhow::Result;
 use esp_idf_hal::task;
 
-use core::ffi::c_void;
+use esp_idf_sys::gpio_install_isr_service;
 use core::option::Option::{None, Some};
+use esp_idf_hal::prelude::Peripherals;
+use esp_idf_sys::gpio_isr_handler_add;
+use esp_idf_sys::gpio_set_pull_mode;
 use core::result::Result::Ok;
 use esp_idf_hal::gpio::Pull;
 use esp_idf_hal::gpio::*;
-use esp_idf_hal::prelude::Peripherals;
-use esp_idf_sys::gpio_install_isr_service;
-use esp_idf_sys::gpio_isr_handler_add;
-use esp_idf_sys::gpio_set_pull_mode;
+use core::ffi::c_void;
 use log::*;
-
-fn callback() {
-  info!("Callback called");
-}
 
 #[no_mangle]
 fn app_main() {
@@ -56,13 +52,13 @@ fn app_main() {
 
   input.enable_interrupt().unwrap();
 
-  // info!("Installing ISR service");
-  // let x = unsafe {
-  //   input.subscribe(move || {
-  //     task::notify(handle, 0x01);
-  //   }).unwrap();
+  info!("Installing ISR service");
+  let x = unsafe {
+    input.subscribe(move || {
+      task::notify(handle, 0x01);
+    }).unwrap();
 
-  // };
+  };
 
   loop {
     // Reset the watchdog timer
@@ -72,7 +68,7 @@ fn app_main() {
     }
 
     if let Some(_) = task::wait_notification(None) {
-      // info!("Notification received");
+      info!("Notification received");
     }
   }
 
@@ -105,7 +101,7 @@ impl From<InvalidButtonTransitionError> for anyhow::Error {
 fn handle_button_click(curr_state: InputState) -> Result<()> {
   info!("Handling button click: {:?}", curr_state);
 
-  let mut state_guard = CURRENT_INPUT_STATE.lock();
+  let mut state_guard = CURRENT_INPUT_STATE.lock().unwrap();
   debug!("Current state: {:?}", *state_guard);
 
   let (event, new_state) = state_guard.transition_to(curr_state)?;
@@ -114,9 +110,11 @@ fn handle_button_click(curr_state: InputState) -> Result<()> {
   info!("New state: {:?}", *state_guard);
   info!("New event: {:?}", event);
 
+  // let keyboard = KEYBOARD.lock().unwrap();
+
   // match event {
   //   Some(BluetoothEvent::MediaControlKey(key)) => {
-  //     KEYBOARD.lock().send_media_key(key.into());
+  //     keyboard.send_media_key(key.into());
   //   },
   //   Some(BluetoothEvent::Letter(letter)) => {
   //     KEYBOARD.lock().send_shortcut(letter);
