@@ -46,10 +46,8 @@ fn callback() {
 
 #[no_mangle]
 fn app_main() {
-  // esp_idf_sys::link_patches();
-  // esp_idf_svc::log::EspLogger::initialize_default();
-
-  // log::log_enabled!(log::Level::max());
+  esp_idf_sys::link_patches();
+  esp_idf_svc::log::EspLogger::initialize_default();
 
   info!("Starting up...");
 
