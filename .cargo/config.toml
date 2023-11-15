@@ -1,5 +1,6 @@
 [build]
-target = "xtensa-esp32-espidf"
+# target = "xtensa-esp32-espidf"
+target = "riscv32imc-esp-espidf"
 
 [target.riscv32imc-esp-espidf]
 runner = "espflash flash -b 921600 -p /dev/tty.wchusbserial110 --monitor"
