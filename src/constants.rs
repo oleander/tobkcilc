@@ -3,7 +3,7 @@ use spin::Mutex;
 use lazy_static::*;
 use linked_list_allocator::LockedHeap;
 use crate::types::{BluetoothEvent, InputState, *};
-use crate::keyboard::Keyboard;
+// use crate::keyboard::Keyboard;
 use crate::types::ButtonIdentifier::*;
 
 #[global_allocator]
@@ -54,5 +54,5 @@ lazy_static! {
   };
 
   pub static ref CURRENT_INPUT_STATE: Mutex<InputState> = Mutex::new(InputState::Undefined);
-  pub static ref KEYBOARD: Mutex<Keyboard> = Mutex::new(Keyboard::new());
+  // pub static ref KEYBOARD: Mutex<Keyboard> = Mutex::new(Keyboard::new());
 }

@@ -1,4 +1,5 @@
-#![no_std]
+// #![no_std]
+#![no_main]
 
 extern crate alloc;
 extern crate anyhow;
@@ -8,14 +9,27 @@ extern crate linked_list_allocator;
 extern crate log;
 extern crate spin;
 
+// #[panic_handler]
+// fn panic(info: &core::panic::PanicInfo) -> ! {
+//   info!("Panic: {:?}", info);
+//   // esp_idf_hal::delay::Ets::delay_ms(1000);
+//   // unsafe {
+//   //   esp_idf_sys::esp_restart();
+//   // };
+//   loop {}
+// }
+
 mod constants;
 mod impls;
-mod keyboard;
+// mod keyboard;
 mod types;
 
 use crate::constants::*;
 use crate::types::*;
 use anyhow::Result;
+use esp_idf_hal::task;
+
+use core::ffi::c_void;
 use core::option::Option::{None, Some};
 use core::result::Result::Ok;
 use esp_idf_hal::gpio::Pull;
@@ -26,25 +40,16 @@ use esp_idf_sys::gpio_isr_handler_add;
 use esp_idf_sys::gpio_set_pull_mode;
 use log::*;
 
-extern "C" fn gpio_interrupt_handler() {
-  // Your interrupt handling code here
-}
-
-use core::ffi::c_void;
-
-extern "C" fn cb(_x: *mut c_void) {
-
-}
-
 fn callback() {
   info!("Callback called");
 }
 
-#[allow(dead_code)]
 #[no_mangle]
-extern "C" fn app_main() {
-  esp_idf_sys::link_patches();
-  esp_idf_svc::log::EspLogger::initialize_default();
+fn app_main() {
+  // esp_idf_sys::link_patches();
+  // esp_idf_svc::log::EspLogger::initialize_default();
+
+  // log::log_enabled!(log::Level::max());
 
   info!("Starting up...");
 
@@ -52,22 +57,47 @@ extern "C" fn app_main() {
   let pins = peripherals.pins;
 
   info!("Setting up pin 0");
-  let mut pin0 = pins.gpio0;
+  let mut pin0 = pins.gpio2;
 
   info!("Setting up pin 0");
   let mut input = PinDriver::input(&mut pin0).unwrap();
 
-  info!("Installing ISR service");
-  let result = unsafe { input.subscribe(callback); };
-  info!("Result: {:?}", result);
+  input.set_interrupt_type(InterruptType::LowLevel).unwrap();
+
+  let handle = task::current().unwrap();
 
   info!("Subscribed to pin interrupt");
-  input.set_pull(Pull::Up).unwrap();
+  // input.set_pull(Pull::Up).unwrap();
+
+  // input.enable_interrupt().unwrap();
+
+  info!("Installing ISR service");
+  let x = unsafe {
+    input.subscribe(move || {
+      task::notify(handle, 0x01);
+    }).unwrap();
+
+  };
 
   loop {
-    info!("Waiting for button click");
-    esp_idf_hal::delay::Ets::delay_ms(1000);
+    // Reset the watchdog timer
+    info!("Resetting watchdog timer");
+    unsafe {
+      esp_idf_sys::esp_task_wdt_reset();
+    }
+
+    if let Some(_) = task::wait_notification(None) {
+      info!("Notification received");
+    }
   }
+
+  info!("Installing ISR service: {:?}", x);
+  // info!("Result: {:?}", result);
+
+  // loop {
+  //   info!("Waiting for button click");
+  //   esp_idf_hal::delay::Ets::delay_ms(1000);
+  // }
 }
 
 #[no_mangle]
@@ -99,17 +129,17 @@ fn handle_button_click(curr_state: InputState) -> Result<()> {
   info!("New state: {:?}", *state_guard);
   info!("New event: {:?}", event);
 
-  match event {
-    Some(BluetoothEvent::MediaControlKey(key)) => {
-      KEYBOARD.lock().send_media_key(key.into());
-    },
-    Some(BluetoothEvent::Letter(letter)) => {
-      KEYBOARD.lock().send_shortcut(letter);
-    },
-    None => {
-      warn!("No event for button click: {:?}", curr_state);
-    },
-  };
+  // match event {
+  //   Some(BluetoothEvent::MediaControlKey(key)) => {
+  //     KEYBOARD.lock().send_media_key(key.into());
+  //   },
+  //   Some(BluetoothEvent::Letter(letter)) => {
+  //     KEYBOARD.lock().send_shortcut(letter);
+  //   },
+  //   None => {
+  //     warn!("No event for button click: {:?}", curr_state);
+  //   },
+  // };
 
   Ok(())
 }
