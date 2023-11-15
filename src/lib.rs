@@ -65,17 +65,20 @@ extern "C" fn app_main() {
 
   // let mut pin = pins.gpio2.into_input()?;
 
-  let mut pin = pins.gpio0;
-  let pull = Pull::Up;
-  unsafe { gpio_set_pull_mode(pin.pin(), pull.into()) };
+  let mut pin0 = pins.gpio0;
 
-  unsafe {
-    gpio_isr_handler_add(
-      pin.pin(),
-      Some(cb),
-      0 as *mut _,
-    );
-  }
+  let busy_in = PinDriver::input(&mut pin0);
+
+  // let pull = Pull::Up;
+  // unsafe { gpio_set_pull_mode(pin0.pin(), pull.into()) };
+
+  // unsafe {
+  //   gpio_isr_handler_add(
+  //     pin0.pin(),
+  //     Some(cb),
+  //     0 as *mut _,
+  //   );
+  // }
 
   // // Configure the GPIO for interrupt on a rising edge
   // unsafe {
