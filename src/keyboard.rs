@@ -126,13 +126,13 @@ impl Keyboard {
     self.server.connected_count() > 0
   }
 
-  pub fn send_media_key(&mut self, keys: [u8; 2]) {
+  pub fn send_media_key(&self, keys: [u8; 2]) {
     self.input_media_keys.lock().set_value(&keys).notify();
     esp_idf_hal::delay::Ets::delay_ms(7);
     self.input_media_keys.lock().set_value(&[0, 0]).notify();
   }
 
-  pub fn send_shortcut(&mut self, offset: u8) {
+  pub fn send_shortcut(&self, offset: u8) {
     let lowercase_a = 0x04;
     let uppercase_a = lowercase_a | SHIFT;
     let uppercase_shortcut_letter = uppercase_a + offset;

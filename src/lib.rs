@@ -13,11 +13,14 @@ mod constants;
 mod types;
 mod impls;
 
-use core::option::Option::{None, Some};
-use core::result::Result::Ok;
 use crate::constants::*;
 use crate::types::*;
 use anyhow::Result;
+use core::option::Option::{None, Some};
+use core::result::Result::Ok;
+use esp_idf_hal::gpio::*;
+use esp_idf_hal::prelude::Peripherals;
+use esp_idf_sys::gpio_set_pull_mode;
 use log::*;
 
 #[allow(dead_code)]
@@ -28,16 +31,34 @@ extern "C" fn app_main() {
 
   info!("Starting up...");
 
-  let keyboard = KEYBOARD.lock();
+  // let keyboard = KEYBOARD.lock();
 
-  esp_idf_hal::delay::Ets::delay_ms(2000);
+  // esp_idf_hal::delay::Ets::delay_ms(2000);
 
-  while !keyboard.connected() {
-    esp_idf_hal::delay::Ets::delay_ms(500);
-    warn!("Keyboard not connected");
-  }
+  // while !keyboard.connected() {
+  //   esp_idf_hal::delay::Ets::delay_ms(500);
+  //   warn!("Keyboard not connected");
+  // }
 
-  info!("Keyboard connected");
+  // for _ in 0..3 {
+  //   keyboard.send_media_key([0x00, 0x00]);
+  //   esp_idf_hal::delay::Ets::delay_ms(500);
+  // }
+  // info!("Keyboard connected");
+
+  // esp_idf_hal::gpio::
+  // Set pin 3 as INPUT, PULLUP
+  let peripherals = Peripherals::take().unwrap();
+  let pins = peripherals.pins;
+
+  // let mut pin = pins.gpio2.into_input()?;
+
+  let pin = pins.gpio2;
+  let pull = Pull::Up;
+  unsafe { gpio_set_pull_mode(pin.pin(), pull.into()) };
+
+  // let mut pin_x = PinDriver::input(pin)?; pin_x.set_pull(Pull::Up);
+
 
   loop {
     info!("Waiting for button click");
