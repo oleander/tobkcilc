@@ -48,68 +48,21 @@ extern "C" fn app_main() {
 
   info!("Starting up...");
 
-  // let keyboard = KEYBOARD.lock();
-
-  // esp_idf_hal::delay::Ets::delay_ms(2000);
-
-  // while !keyboard.connected() {
-  //   esp_idf_hal::delay::Ets::delay_ms(500);
-  //   warn!("Keyboard not connected");
-  // }
-
-  // for _ in 0..3 {
-  //   keyboard.send_media_key([0x00, 0x00]);
-  //   esp_idf_hal::delay::Ets::delay_ms(500);
-  // }
-  // info!("Keyboard connected");
-
-  // esp_idf_hal::gpio::
-  // Set pin 3 as INPUT, PULLUP
   let peripherals = Peripherals::take().unwrap();
   let pins = peripherals.pins;
 
-  // let mut pin = pins.gpio2.into_input()?;
-
+  info!("Setting up pin 0");
   let mut pin0 = pins.gpio0;
 
+  info!("Setting up pin 0");
   let mut input = PinDriver::input(&mut pin0).unwrap();
 
-  unsafe { input.subscribe(callback); }
+  info!("Installing ISR service");
+  let result = unsafe { input.subscribe(callback); };
+  info!("Result: {:?}", result);
 
+  info!("Subscribed to pin interrupt");
   input.set_pull(Pull::Up).unwrap();
-
-  // Do i need to enable anything else?
-  // let mut pin = pin0.
-  // pin.set_interrupt(gpio_int_type_t_GPIO_INTR_POSEDGE)?;
-
-  // let pull = Pull::Up;
-  // unsafe { gpio_set_pull_mode(pin0.pin(), pull.into()) };
-
-  // unsafe {
-  //   gpio_isr_handler_add(
-  //     pin0.pin(),
-  //     Some(cb),
-  //     0 as *mut _,
-  //   );
-  // }
-
-  // // Configure the GPIO for interrupt on a rising edge
-  // unsafe {
-  //   let mut io_conf = gpio_config_t {
-  //     pin_bit_mask: 1 << 0, // GPIO0
-  //     mode: gpio_mode_t_GPIO_MODE_INPUT,
-  //     pull_up_en: gpio_pullup_t_GPIO_PULLUP_DISABLE,
-  //     pull_down_en: gpio_pulldown_t_GPIO_PULLDOWN_ENABLE,
-  //     intr_type: gpio_int_type_t_GPIO_INTR_POSEDGE,
-  //     ..Default::default()
-  //   };
-  //   gpio_config(&mut io_conf);
-  // }
-
-  // Enable interrupts globally
-  unsafe {
-    gpio_install_isr_service(0);
-  }
 
   loop {
     info!("Waiting for button click");
