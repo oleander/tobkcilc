@@ -50,14 +50,15 @@ fn app_main() {
 
   info!("Ensure iPhone is connected");
   let keyboard = Keyboard::new();
-  while !keyboard.connected() {
-    info!("Waiting for keyboard to connect...");
-    delay::Ets::delay_ms(200);
-  }
+  // while !keyboard.connected() {
+  //   info!("Waiting for keyboard to connect...");
+  //   delay::Ets::delay_ms(200);
+  // }
 
   info!("iPhone connected");
   let peripherals = Peripherals::take().unwrap();
-  let duration = Some(Duration::from_millis(200));
+  // let duration = Some(Duration::from_millis(200));
+  let duration = None;
   let mut pins = peripherals.pins;
 
   info!("Initializing pins ...");

@@ -121,6 +121,7 @@ impl Keyboard {
     input.set_value(&keys).notify();
     delay::Ets::delay_ms(12);
     input.set_value(&[0, 0]).notify();
+    delay::Ets::delay_ms(12);
   }
 
   pub fn send_shortcut(&self, offset: u8) {
@@ -131,5 +132,6 @@ impl Keyboard {
     input.set_value(&keys).notify();
     delay::Ets::delay_ms(12);
     input.set_value(&[0; 8]).notify();
+    delay::Ets::delay_ms(12);
   }
 }
