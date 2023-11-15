@@ -12,44 +12,36 @@ mod impls;
 mod types;
 
 use crate::constants::*;
+use esp_idf_hal::task;
 use crate::types::*;
 use anyhow::Result;
-use esp_idf_hal::gpio;
-use esp_idf_hal::task;
 
-use core::ffi::c_void;
-use core::option::Option::{None, Some};
+use esp_idf_hal::prelude::Peripherals;
+use core::option::Option::Some;
 use core::result::Result::Ok;
 use esp_idf_hal::gpio::Pull;
 use esp_idf_hal::gpio::*;
-use esp_idf_hal::prelude::Peripherals;
-use esp_idf_sys::gpio_install_isr_service;
-use esp_idf_sys::gpio_isr_handler_add;
-use esp_idf_sys::gpio_set_pull_mode;
+use std::time::Duration;
 use log::*;
 
-// a macro named pin!
 macro_rules! pin {
-  ($pin:path) => {
-    PinDriver::input(&mut $pin).unwrap()
-  };
-}
+  ($pin:expr) => {
+    let pid_id = $pin.pin() as u32;
+    let mut input = PinDriver::input(&mut $pin).unwrap();
+    input.set_interrupt_type(InterruptType::LowLevel).unwrap();
+    let handle = task::current().unwrap();
+    input.set_pull(Pull::Up).unwrap();
+    input.enable_interrupt().unwrap();
 
-macro_rules! setup_interrupt {
-    ($pin:expr, $pin_id:expr) => {
-        let mut input = PinDriver::input(&mut $pin).unwrap();
-        input.set_interrupt_type(InterruptType::LowLevel).unwrap();
-        let handle = task::current().unwrap();
-        input.set_pull(Pull::Up).unwrap();
-        input.enable_interrupt().unwrap();
-
-        info!("Installing ISR service");
-        let _subscription = unsafe {
-            input.subscribe(move || {
-                task::notify(handle, $pin_id);
-            }).unwrap()
-        };
+    info!("Installing ISR service");
+    let _subscription = unsafe {
+      input
+        .subscribe(move || {
+          task::notify(handle, pid_id);
+        })
+        .unwrap()
     };
+  };
 }
 
 #[no_mangle]
@@ -57,49 +49,29 @@ fn app_main() {
   esp_idf_sys::link_patches();
   esp_idf_svc::log::EspLogger::initialize_default();
 
-  // info!("Starting up...");
+  info!("Starting up...");
 
   let peripherals = Peripherals::take().unwrap();
   let mut pins = peripherals.pins;
 
-  setup_interrupt!(pins.gpio0, 0);
+  info!("Initializing pins ...");
+  pin!(pins.gpio0);
+  // pin!(pins.gpio9);
+  // pin!(pins.gpio10);
+  // pin!(pins.gpio14);
+  // pin!(pins.gpio15);
+  // pin!(pins.gpio16);
+  // pin!(pins.gpio19);
 
-  // info!("Setting up pin 0");
-
-  // let pins = [pins.gpio0, pins.gpio1];
-  // let mut gpio0 = pins.gpio0;
-  // let mut input = pin!(gpio0);
-
-  // // info!("Setting up pin 0");
-  // // let mut input = PinDriver::input(&mut pin0).unwrap();
-
-  // input.set_interrupt_type(InterruptType::LowLevel).unwrap();
-
-  // let handle = task::current().unwrap();
-
-  // // info!("Subscribed to pin interrupt");
-  // input.set_pull(Pull::Up).unwrap();
-
-  // input.enable_interrupt().unwrap();
-
-  // info!("Installing ISR service");
-  // let x = unsafe {
-  //   input
-  //     .subscribe(move || {
-  //       task::notify(handle, 0x01);
-  //     })
-  //     .unwrap();
-  // };
+  let duration = Some(Duration::from_millis(100));
 
   loop {
-    // Reset the watchdog timer
-    // info!("Resetting watchdog timer");
     unsafe {
       esp_idf_sys::esp_task_wdt_reset();
     }
 
-    if let Some(_) = task::wait_notification(None) {
-      info!("Notification received");
+    if let Some(pin_id) = task::wait_notification(duration) {
+      info!("Notification received: {}", pin_id);
     }
   }
 
