@@ -1,17 +1,17 @@
 #![no_std]
 
-extern crate linked_list_allocator;
-extern crate lazy_static;
-extern crate hashbrown;
-extern crate anyhow;
 extern crate alloc;
-extern crate spin;
+extern crate anyhow;
+extern crate hashbrown;
+extern crate lazy_static;
+extern crate linked_list_allocator;
 extern crate log;
+extern crate spin;
 
-mod keyboard;
 mod constants;
-mod types;
 mod impls;
+mod keyboard;
+mod types;
 
 use crate::constants::*;
 use crate::types::*;
@@ -20,8 +20,20 @@ use core::option::Option::{None, Some};
 use core::result::Result::Ok;
 use esp_idf_hal::gpio::*;
 use esp_idf_hal::prelude::Peripherals;
+use esp_idf_sys::gpio_install_isr_service;
+use esp_idf_sys::gpio_isr_handler_add;
 use esp_idf_sys::gpio_set_pull_mode;
 use log::*;
+
+extern "C" fn gpio_interrupt_handler() {
+  // Your interrupt handling code here
+}
+
+use core::ffi::c_void;
+
+extern "C" fn cb(_x: *mut c_void) {
+
+}
 
 #[allow(dead_code)]
 #[no_mangle]
@@ -53,12 +65,35 @@ extern "C" fn app_main() {
 
   // let mut pin = pins.gpio2.into_input()?;
 
-  let pin = pins.gpio2;
+  let mut pin = pins.gpio0;
   let pull = Pull::Up;
   unsafe { gpio_set_pull_mode(pin.pin(), pull.into()) };
 
-  // let mut pin_x = PinDriver::input(pin)?; pin_x.set_pull(Pull::Up);
+  unsafe {
+    gpio_isr_handler_add(
+      pin.pin(),
+      Some(cb),
+      0 as *mut _,
+    );
+  }
 
+  // // Configure the GPIO for interrupt on a rising edge
+  // unsafe {
+  //   let mut io_conf = gpio_config_t {
+  //     pin_bit_mask: 1 << 0, // GPIO0
+  //     mode: gpio_mode_t_GPIO_MODE_INPUT,
+  //     pull_up_en: gpio_pullup_t_GPIO_PULLUP_DISABLE,
+  //     pull_down_en: gpio_pulldown_t_GPIO_PULLDOWN_ENABLE,
+  //     intr_type: gpio_int_type_t_GPIO_INTR_POSEDGE,
+  //     ..Default::default()
+  //   };
+  //   gpio_config(&mut io_conf);
+  // }
+
+  // Enable interrupts globally
+  unsafe {
+    gpio_install_isr_service(0);
+  }
 
   loop {
     info!("Waiting for button click");
@@ -104,7 +139,7 @@ fn handle_button_click(curr_state: InputState) -> Result<()> {
     },
     None => {
       warn!("No event for button click: {:?}", curr_state);
-    }
+    },
   };
 
   Ok(())
