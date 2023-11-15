@@ -18,6 +18,7 @@ use crate::types::*;
 use anyhow::Result;
 use core::option::Option::{None, Some};
 use core::result::Result::Ok;
+use esp_idf_hal::gpio::Pull;
 use esp_idf_hal::gpio::*;
 use esp_idf_hal::prelude::Peripherals;
 use esp_idf_sys::gpio_install_isr_service;
@@ -74,6 +75,12 @@ extern "C" fn app_main() {
   let mut input = PinDriver::input(&mut pin0).unwrap();
 
   unsafe { input.subscribe(callback); }
+
+  input.set_pull(Pull::Up).unwrap();
+
+  // Do i need to enable anything else?
+  // let mut pin = pin0.
+  // pin.set_interrupt(gpio_int_type_t_GPIO_INTR_POSEDGE)?;
 
   // let pull = Pull::Up;
   // unsafe { gpio_set_pull_mode(pin0.pin(), pull.into()) };
