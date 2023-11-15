@@ -57,25 +57,25 @@ fn app_main() {
   let peripherals = Peripherals::take().unwrap();
   let mut pins = peripherals.pins;
 
-  // let is_connected = KEYBOARD.lock().unwrap().connected();
-  // info!("Is keyboard connected: {}", is_connected);
+  let is_connected = KEYBOARD.lock().unwrap().connected();
+  info!("Is keyboard connected: {}", is_connected);
 
   info!("Initializing pins ...");
   // GPIO0 has an internal pull-up resistor and is typically used to determine the boot mode at reset, but it can be used as a general input if it is not pulled LOW during boot
-  pin!(pins.gpio0); // OK
-  pin!(pins.gpio1); // OK
+  // pin!(pins.gpio0); // OK
+  // pin!(pins.gpio1); // OK
                     // Also used for boot mode, similar caution as GPIO0
                     // pin!(pins.gpio2);
-  pin!(pins.gpio3);
+  // pin!(pins.gpio3);
   pin!(pins.gpio4);
-  pin!(pins.gpio5); // OK
+  // pin!(pins.gpio5); // OK
                     // pin!(pins.gpio6);
                     // pin!(pins.gpio7);
                     // pin!(pins.gpio8); // LED pin
-  pin!(pins.gpio9);
-  pin!(pins.gpio10);
-  pin!(pins.gpio18);
-  pin!(pins.gpio19);
+  // pin!(pins.gpio9);
+  // pin!(pins.gpio10);
+  // pin!(pins.gpio18);
+  // pin!(pins.gpio19);
   // pin!(pins.gpio21);
 
   loop {

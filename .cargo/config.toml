@@ -3,7 +3,7 @@
 target = "riscv32imc-esp-espidf"
 
 [target.riscv32imc-esp-espidf]
-runner = "espflash flash -b 921600 -p /dev/tty.wchusbserial110 --monitor"
+runner = "espflash flash -b 921600 -p /dev/cu.usbserial-1140 --monitor"
 rustflags = ["-C", "default-linker-libraries", "-Z", "macro-backtrace"]#, "--cfg", "espidf_time64"]
 linker = "ldproxy"
 

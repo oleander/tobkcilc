@@ -78,7 +78,6 @@ const SHIFT: u8 = 0x80;
 pub struct Keyboard {
   server:           &'static mut BLEServer,
   input_keyboard:   Arc<Mutex<BLECharacteristic>>,
-  output_keyboard:  Arc<Mutex<BLECharacteristic>>,
   input_media_keys: Arc<Mutex<BLECharacteristic>>
 }
 
@@ -92,7 +91,6 @@ impl Keyboard {
     let mut hid = BLEHIDDevice::new(server);
 
     let input_keyboard = hid.input_report(KEYBOARD_ID);
-    let output_keyboard = hid.output_report(KEYBOARD_ID);
     let input_media_keys = hid.input_report(MEDIA_KEYS_ID);
 
     hid.manufacturer("Espressif");
@@ -114,7 +112,6 @@ impl Keyboard {
     Self {
       server,
       input_keyboard,
-      output_keyboard,
       input_media_keys
     }
   }
