@@ -35,6 +35,23 @@ macro_rules! pin {
   };
 }
 
+macro_rules! setup_interrupt {
+    ($pin:expr, $pin_id:expr) => {
+        let mut input = PinDriver::input(&mut $pin).unwrap();
+        input.set_interrupt_type(InterruptType::LowLevel).unwrap();
+        let handle = task::current().unwrap();
+        input.set_pull(Pull::Up).unwrap();
+        input.enable_interrupt().unwrap();
+
+        info!("Installing ISR service");
+        let _subscription = unsafe {
+            input.subscribe(move || {
+                task::notify(handle, $pin_id);
+            }).unwrap()
+        };
+    };
+}
+
 #[no_mangle]
 fn app_main() {
   esp_idf_sys::link_patches();
@@ -43,34 +60,36 @@ fn app_main() {
   // info!("Starting up...");
 
   let peripherals = Peripherals::take().unwrap();
-  let pins = peripherals.pins;
+  let mut pins = peripherals.pins;
+
+  setup_interrupt!(pins.gpio0, 0);
 
   // info!("Setting up pin 0");
 
   // let pins = [pins.gpio0, pins.gpio1];
-  let mut gpio0 = pins.gpio0;
-  let mut input = pin!(gpio0);
+  // let mut gpio0 = pins.gpio0;
+  // let mut input = pin!(gpio0);
 
-  // info!("Setting up pin 0");
-  // let mut input = PinDriver::input(&mut pin0).unwrap();
+  // // info!("Setting up pin 0");
+  // // let mut input = PinDriver::input(&mut pin0).unwrap();
 
-  input.set_interrupt_type(InterruptType::LowLevel).unwrap();
+  // input.set_interrupt_type(InterruptType::LowLevel).unwrap();
 
-  let handle = task::current().unwrap();
+  // let handle = task::current().unwrap();
 
-  // info!("Subscribed to pin interrupt");
-  input.set_pull(Pull::Up).unwrap();
+  // // info!("Subscribed to pin interrupt");
+  // input.set_pull(Pull::Up).unwrap();
 
-  input.enable_interrupt().unwrap();
+  // input.enable_interrupt().unwrap();
 
-  info!("Installing ISR service");
-  let x = unsafe {
-    input
-      .subscribe(move || {
-        task::notify(handle, 0x01);
-      })
-      .unwrap();
-  };
+  // info!("Installing ISR service");
+  // let x = unsafe {
+  //   input
+  //     .subscribe(move || {
+  //       task::notify(handle, 0x01);
+  //     })
+  //     .unwrap();
+  // };
 
   loop {
     // Reset the watchdog timer
