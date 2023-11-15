@@ -76,16 +76,15 @@ const HID_REPORT_DISCRIPTOR: &[u8] = hid!(
 const SHIFT: u8 = 0x80;
 
 pub struct Keyboard {
-  server:           &'static mut BLEServer,
-  input_keyboard:   Arc<Mutex<BLECharacteristic>>,
-  input_media_keys: Arc<Mutex<BLECharacteristic>>
+  server: &'static mut BLEServer,
+  input_keyboard: Arc<Mutex<BLECharacteristic>>,
+  input_media_keys: Arc<Mutex<BLECharacteristic>>,
 }
 
 impl Keyboard {
   pub fn new() -> Self {
     let device = BLEDevice::take();
     device.security().set_auth(true, true, false).set_io_cap(SecurityIOCap::NoInputNoOutput);
-
 
     let server = device.get_server();
     let mut hid = BLEHIDDevice::new(server);
@@ -103,17 +102,13 @@ impl Keyboard {
 
     let ble_advertising = device.get_advertising();
     ble_advertising
-      .name("x701")
+      .name("u701")
       .appearance(0x03C1)
       .add_service_uuid(hid.hid_service().lock().uuid())
       .scan_response(false);
     ble_advertising.start().unwrap();
 
-    Self {
-      server,
-      input_keyboard,
-      input_media_keys
-    }
+    Self { server, input_keyboard, input_media_keys }
   }
 
   pub fn connected(&self) -> bool {
