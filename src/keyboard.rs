@@ -58,7 +58,7 @@ const HID_REPORT_DISCRIPTOR: &[u8] = hid!(
   (USAGE, 0xB6),              //   USAGE (Scan Previous Track) ; bit 1: 2
   (USAGE, 0xB7),              //   USAGE (Stop)                ; bit 2: 4
   (USAGE, 0xCD),              //   USAGE (Play/Pause)          ; bit 3: 8
-  (USAGE, 0xE2),              //   USAGE (Mute)                ; bit 4: 16
+  (USAGE, 0xB8),              //   USAGE (EJECT)                ; bit 4: 16
   (USAGE, 0xE9),              //   USAGE (Volume Increment)    ; bit 5: 32
   (USAGE, 0xEA),              //   USAGE (Volume Decrement)    ; bit 6: 64
   (USAGE, 0x23, 0x02),        //   Usage (WWW Home)            ; bit 7: 128
@@ -119,17 +119,17 @@ impl Keyboard {
   pub fn send_media_key(&self, keys: [u8; 2]) {
     let mut input = self.input_media_keys.lock();
     input.set_value(&keys).notify();
-    delay::Ets::delay_ms(10);
+    delay::Ets::delay_ms(12);
     input.set_value(&[0, 0]).notify();
   }
 
   pub fn send_shortcut(&self, offset: u8) {
     let lowercase_a = 0x04;
     let letter = lowercase_a + offset;
-    let keys = [0x02, 0, letter, 0, 0, 0, 0, 0];
+    let keys = [0, 0, letter, 0, 0, 0, 0, 0];
     let mut input = self.input_keyboard.lock();
     input.set_value(&keys).notify();
-    delay::Ets::delay_ms(10);
+    delay::Ets::delay_ms(12);
     input.set_value(&[0; 8]).notify();
   }
 }

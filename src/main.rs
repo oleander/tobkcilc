@@ -1,29 +1,27 @@
 #![no_main]
 
-extern crate lazy_static;
-extern crate hashbrown;
 extern crate anyhow;
+extern crate hashbrown;
+extern crate lazy_static;
 extern crate log;
 
 mod constants;
-mod keyboard;
 mod impls;
+mod keyboard;
 mod types;
 
-use crate::constants::*;
-use esp_idf_hal::task;
+use crate::keyboard::Keyboard;
 use crate::types::*;
-use anyhow::Result;
-use anyhow::bail;
+use esp_idf_hal::task;
 
-use esp_idf_hal::prelude::Peripherals;
-use crate::constants::KEYBOARD;
 use core::option::Option::Some;
 use core::result::Result::Ok;
+use esp_idf_hal::delay;
 use esp_idf_hal::gpio::Pull;
 use esp_idf_hal::gpio::*;
-use std::time::Duration;
+use esp_idf_hal::prelude::Peripherals;
 use log::*;
+use std::time::Duration;
 
 macro_rules! pin {
   ($pin:expr) => {
@@ -33,8 +31,6 @@ macro_rules! pin {
     let handle = task::current().unwrap();
     input.set_pull(Pull::Up).unwrap();
     input.enable_interrupt().unwrap();
-
-    info!("Installing ISR service");
     let _subscription = unsafe {
       input
         .subscribe(move || {
@@ -45,8 +41,6 @@ macro_rules! pin {
   };
 }
 
-use esp_idf_hal::delay;
-
 #[no_mangle]
 fn app_main() {
   esp_idf_sys::link_patches();
@@ -54,35 +48,17 @@ fn app_main() {
 
   info!("Starting up...");
 
-  let duration = Some(Duration::from_millis(100));
-  let peripherals = Peripherals::take().unwrap();
-  let mut pins = peripherals.pins;
-
-  let keyboard = KEYBOARD.lock().unwrap();
+  info!("Ensure iPhone is connected");
+  let keyboard = Keyboard::new();
   while !keyboard.connected() {
     info!("Waiting for keyboard to connect...");
-    delay::Ets::delay_ms(1000);
+    delay::Ets::delay_ms(200);
   }
 
-  info!("Keyboard connected");
-  delay::Ets::delay_ms(1000);
-
-  info!("Sending the letter A");
-  keyboard.send_shortcut(0);
-  delay::Ets::delay_ms(1000);
-  info!("Sending the letter B");
-  keyboard.send_shortcut(1);
-
-  delay::Ets::delay_ms(1000);
-  info!("Pausing keyboard");
-  keyboard.send_media_key(PLAY_PAUSE.into());
-
-  delay::Ets::delay_ms(1000);
-  info!("Pausing keyboard");
-  keyboard.send_media_key(PLAY_PAUSE.into());
-
-  info!("Done!");
-
+  info!("iPhone connected");
+  let peripherals = Peripherals::take().unwrap();
+  let duration = Some(Duration::from_millis(200));
+  let mut pins = peripherals.pins;
 
   info!("Initializing pins ...");
   pin!(pins.gpio1);
@@ -93,6 +69,8 @@ fn app_main() {
   pin!(pins.gpio7);
   pin!(pins.gpio9);
   pin!(pins.gpio10);
+
+  let mut prev_state = InputState::Undefined;
 
   info!("Entering loop");
   loop {
@@ -109,43 +87,36 @@ fn app_main() {
       continue;
     };
 
-    debug!("Received button click: {:?}", curr_state);
+    let (event, new_state) = match prev_state.transition_to(curr_state) {
+      Ok(success) => success,
+      Err(err) => {
+        error!("Invalid transition: {:?}", err);
+        continue;
+      },
+    };
 
-    if let Err(e) = handle_button_click(curr_state) {
-      error!("Error handling button click: {:?}", e);
+    prev_state = new_state;
+
+    info!("Curr state: {:?}", curr_state);
+    info!("Prev state: {:?}", prev_state);
+    info!("New state: {:?}", new_state);
+    info!("New event: {:?}", event);
+
+    if !keyboard.connected() {
+      warn!("Phone is not connected");
+      continue;
     }
+
+    match event {
+      Some(BluetoothEvent::MediaControlKey(key)) => {
+        keyboard.send_media_key(key.into());
+      },
+      Some(BluetoothEvent::Letter(letter)) => {
+        keyboard.send_shortcut(letter);
+      },
+      None => {
+        warn!("No event for button click: {:?}", curr_state);
+      },
+    };
   }
-}
-
-fn handle_button_click(curr_state: InputState) -> Result<()> {
-  info!("Handling button click: {:?}", curr_state);
-
-  let mut state_guard = CURRENT_INPUT_STATE.lock().unwrap();
-  debug!("Current state: {:?}", *state_guard);
-
-  let (event, new_state) = state_guard.transition_to(curr_state)?;
-  *state_guard = new_state;
-
-  info!("New state: {:?}", *state_guard);
-  info!("New event: {:?}", event);
-
-  let keyboard = KEYBOARD.lock().unwrap();
-
-  if !keyboard.connected() {
-    bail!("Phone is not connected");
-  }
-
-  match event {
-    Some(BluetoothEvent::MediaControlKey(key)) => {
-      keyboard.send_media_key(key.into());
-    },
-    Some(BluetoothEvent::Letter(letter)) => {
-      keyboard.send_shortcut(letter);
-    },
-    None => {
-      warn!("No event for button click: {:?}", curr_state);
-    },
-  };
-
-  Ok(())
 }
