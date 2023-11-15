@@ -35,6 +35,10 @@ extern "C" fn cb(_x: *mut c_void) {
 
 }
 
+fn callback() {
+  info!("Callback called");
+}
+
 #[allow(dead_code)]
 #[no_mangle]
 extern "C" fn app_main() {
@@ -67,7 +71,9 @@ extern "C" fn app_main() {
 
   let mut pin0 = pins.gpio0;
 
-  let busy_in = PinDriver::input(&mut pin0);
+  let mut input = PinDriver::input(&mut pin0).unwrap();
+
+  unsafe { input.subscribe(callback); }
 
   // let pull = Pull::Up;
   // unsafe { gpio_set_pull_mode(pin0.pin(), pull.into()) };
