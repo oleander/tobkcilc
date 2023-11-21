@@ -12,3 +12,4 @@ build-std = ["std", "panic_abort"]
 
 [env]
 RUST_BACKTRACE = "1"
+RUST_LOG = "debug"

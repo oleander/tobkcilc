@@ -4,6 +4,7 @@ extern crate esp32_nimble;
 extern crate log;
 
 use embassy_time::{Duration, Timer};
+use log::debug;
 use esp32_nimble::{enums::*, hid::*, utilities::mutex::Mutex, BLECharacteristic, BLEDevice, BLEHIDDevice, BLEServer};
 use std::sync::Arc;
 
@@ -289,16 +290,12 @@ impl Keyboard {
     self.server.connected_count() > 0
   }
 
-  pub async fn write(&mut self, str: &str) {
+  async fn write(&mut self, str: &str, ms: u64) {
     for char in str.as_bytes() {
-      self.letter(char).await;
+      self.press(*char).await;
+      self.delay_ms(ms).await;
+      self.release().await;
     }
-  }
-
-  pub async fn letter(&mut self, char: &u8) {
-    self.press(*char).await;
-    self.delay_secs(60).await;
-    self.release().await;
   }
 
   async fn press(&mut self, char: u8) {
@@ -311,7 +308,7 @@ impl Keyboard {
     self.send_report(&self.key_report).await;
   }
 
-  pub async fn release(&mut self) {
+  async fn release(&mut self) {
     self.key_report.modifiers = 0;
     self.key_report.keys.fill(0);
     self.send_report(&self.key_report).await;
@@ -322,14 +319,13 @@ impl Keyboard {
     self.delay_ms(7).await;
   }
 
-  pub async fn send_media_key(&mut self, media_key: MediaKey) {
-    self.input_media_keys.lock().set_from(&media_key).notify();
-    self.delay_secs(60).await;
-    self.input_media_keys.lock().set_from(&[0, 0]).notify();
+  pub async fn send_init(&mut self) {
+    debug!("Sending init keypress");
+    self.write("b", 2000).await;
   }
 
-  pub async fn send_illumination_event(&mut self) {
-    self.send_media_key(media_keys::EJECT).await;
+  pub async fn send_awake(&mut self) {
+    self.write("a", 10000).await;
   }
 
   pub async fn delay_secs(&self, secs: u64) {
