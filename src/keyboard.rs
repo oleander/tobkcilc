@@ -5,7 +5,6 @@ extern crate log;
 
 use embassy_time::{Duration, Timer};
 use esp32_nimble::{enums::*, hid::*, utilities::mutex::Mutex, BLECharacteristic, BLEDevice, BLEHIDDevice, BLEServer};
-use log::info;
 use std::sync::Arc;
 
 const KEYBOARD_ID: u8 = 0x01;
@@ -297,42 +296,47 @@ impl Keyboard {
   }
 
   pub async fn letter(&mut self, char: &u8) {
-    info!("Sending letter: {}", char);
-    self.press(*char);
-    info!("Waiting 60 seconds");
-    Timer::after(Duration::from_secs(60)).await;
-    info!("Releasing letter: {}", char);
-    self.release();
+    self.press(*char).await;
+    self.delay_secs(60).await;
+    self.release().await;
   }
 
-  fn press(&mut self, char: u8) {
+  async fn press(&mut self, char: u8) {
     let mut key = ASCII_MAP[char as usize];
     if (key & SHIFT) > 0 {
       self.key_report.modifiers |= 0x02;
       key &= !SHIFT;
     }
     self.key_report.keys[0] = key;
-    self.send_report(&self.key_report);
+    self.send_report(&self.key_report).await;
   }
 
-  pub fn release(&mut self) {
+  pub async fn release(&mut self) {
     self.key_report.modifiers = 0;
     self.key_report.keys.fill(0);
-    self.send_report(&self.key_report);
+    self.send_report(&self.key_report).await;
   }
 
-  fn send_report(&self, keys: &KeyReport) {
+  async fn send_report(&self, keys: &KeyReport) {
     self.input_keyboard.lock().set_from(keys).notify();
-    esp_idf_hal::delay::Ets::delay_ms(7);
+    self.delay_ms(7).await;
   }
 
-  pub fn send_media_key(&mut self, media_key: MediaKey) {
+  pub async fn send_media_key(&mut self, media_key: MediaKey) {
     self.input_media_keys.lock().set_from(&media_key).notify();
-    esp_idf_hal::delay::Ets::delay_ms(30000);
+    self.delay_secs(30).await;
     self.input_media_keys.lock().set_from(&[0, 0]).notify();
   }
 
-  pub fn send_illumination_event(&mut self) {
-    self.send_media_key(media_keys::EJECT);
+  pub async fn send_illumination_event(&mut self) {
+    self.send_media_key(media_keys::EJECT).await;
+  }
+
+  pub async fn delay_secs(&self, secs: u64) {
+    Timer::after(Duration::from_secs(secs)).await;
+  }
+
+  pub async fn delay_ms(&self, ms: u64) {
+    Timer::after(Duration::from_millis(ms)).await;
   }
 }
