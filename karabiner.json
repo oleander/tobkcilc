@@ -18,7 +18,7 @@
           },
           "to_if_held_down": [
             {
-              "shell_command": "${HOME}/.dotfiles/bin/anybar red"
+              "shell_command": "${HOME}/.dotfiles/bin/anybar yellow"
             }
           ],
           "to": [
@@ -27,48 +27,16 @@
             },
             {
               "pointing_button": "button32"
-            },
-            {
-              "set_variable": {
-                "name": "a_key_pressed_once",
-                "value": 1
-              }
             }
           ],
           "to_delayed_action": {
-            "to_if_invoked": [
+            "to_if_invoke": [
               {
-                "set_variable": {
-                  "name": "a_key_pressed_twice",
-                  "value": 1
-                }
-              }
-            ],
-            "to_if_canceled": [
-              {
-                "set_variable": {
-                  "name": "a_key_pressed_twice",
-                  "value": 0
-                }
-              }
-            ],
-            "to_after_delay": [
-              {
-                "shell_command": "${HOME}/.dotfiles/bin/anybar yellow"
+                "shell_command": "${HOME}/.dotfiles/bin/anybar red"
               }
             ]
           },
           "conditions": [
-            {
-              "type": "variable_if",
-              "name": "a_key_pressed_once",
-              "value": 1
-            },
-            {
-              "type": "variable_unless",
-              "name": "a_key_pressed_twice",
-              "value": 1
-            },
             {
               "type": "device_if",
               "identifiers": [
