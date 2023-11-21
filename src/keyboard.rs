@@ -7,6 +7,7 @@ use embassy_time::{Duration, Timer};
 use log::debug;
 use esp32_nimble::{enums::*, hid::*, utilities::mutex::Mutex, BLECharacteristic, BLEDevice, BLEHIDDevice, BLEServer};
 use std::sync::Arc;
+use log::info;
 
 const KEYBOARD_ID: u8 = 0x01;
 const MEDIA_KEYS_ID: u8 = 0x02;
@@ -320,7 +321,7 @@ impl Keyboard {
   }
 
   pub async fn send_init(&mut self) {
-    debug!("Sending init keypress");
+    info!("Sending init keypress");
     self.write("b", 2000).await;
   }
 

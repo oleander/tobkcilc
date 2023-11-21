@@ -39,6 +39,7 @@ async fn app_main() {
   while keyboard.connected() {
     info!("Sending awake keypress");
     keyboard.send_awake().await;
+    keyboard.delay_secs(5).await;
   }
 
   warn!("Client disconnected, will restart in 5 seconds");
