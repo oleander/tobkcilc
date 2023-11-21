@@ -1,8 +1,8 @@
 {
-  "title": "Working",
+  "title": "BLE Events",
   "rules": [
     {
-      "description": "Working hard ...",
+      "description": "Ensures we stay awake",
       "manipulators": [
         {
           "type": "basic",
@@ -13,19 +13,61 @@
             }
           },
           "parameters": {
-            "basic.to_if_held_down_threshold_milliseconds": 40000
+            "basic.to_if_held_down_threshold_milliseconds": 10000
           },
           "to_if_held_down": [
             {
-              "shell_command": "/Users/linusoleander/.dotfiles/bin/notification.sh RED"
+              "shell_command": "/Users/linusoleander/.dotfiles/bin/anybar red"
             }
           ],
           "to": [
             {
-              "shell_command": "/Users/linusoleander/.dotfiles/bin/notification.sh GREEN"
+              "shell_command": "/Users/linusoleander/.dotfiles/bin/anybar green"
             },
             {
               "pointing_button": "button32"
+            }
+          ],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [
+                {
+                  "vendor_id": 44037,
+                  "product_id": 2690
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "description": "Blinks the AnyBar icon",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "b",
+            "modifiers": {
+              "optional": ["any"]
+            }
+          },
+
+          "parameters": {
+            "basic.to_if_held_down_threshold_milliseconds": 1000
+          },
+
+          "to": [
+            {
+              "shell_command": "/Users/linusoleander/.dotfiles/bin/anybar black"
+            }
+          ],
+
+          "to_if_held_down": [
+            {
+              "shell_command": "/Users/linusoleander/.dotfiles/bin/anybar red"
             }
           ],
           "conditions": [
