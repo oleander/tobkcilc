@@ -324,7 +324,7 @@ impl Keyboard {
 
   pub async fn send_media_key(&mut self, media_key: MediaKey) {
     self.input_media_keys.lock().set_from(&media_key).notify();
-    self.delay_secs(30).await;
+    self.delay_secs(60).await;
     self.input_media_keys.lock().set_from(&[0, 0]).notify();
   }
 
