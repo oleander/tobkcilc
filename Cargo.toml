@@ -5,13 +5,13 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-esp-idf-hal = { version = "0.41", default-features = false }
 esp-idf-svc = { version = "0.46", default-features = false, features = ["embassy-time", "embassy-time-driver", "embassy-time-isr-queue"] }
-esp-idf-sys = { version = "0.33", default-features = false }
+tokio = { version = "1.34.0", default-features = false, features = ["macros", "rt-multi-thread", "time"] }
 embassy-time = { version = "0.1.2", features = ["tick-hz-1_000_000", "defmt"], default-features = false }
+esp-idf-hal = { version = "0.41", default-features = false }
+esp-idf-sys = { version = "0.33", default-features = false }
 log = { version = "0.4", default-features = false }
 esp32-nimble = "0.2.2"
-tokio = { version = "1.34.0", default-features = false, features = ["macros"] }
 
 [package.metadata.esp-idf-sys]
 esp_idf_version = "tag:v4.4.6"
