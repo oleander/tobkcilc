@@ -3,9 +3,10 @@
 extern crate esp32_nimble;
 extern crate log;
 
-use std::sync::Arc;
-
+use embassy_time::{Duration, Timer};
 use esp32_nimble::{enums::*, hid::*, utilities::mutex::Mutex, BLECharacteristic, BLEDevice, BLEHIDDevice, BLEServer};
+use log::info;
+use std::sync::Arc;
 
 const KEYBOARD_ID: u8 = 0x01;
 const MEDIA_KEYS_ID: u8 = 0x02;
@@ -64,7 +65,7 @@ const HID_REPORT_DISCRIPTOR: &[u8] = hid!(
   (USAGE, 0xE2),              //   USAGE (Mute)                ; bit 4: 16
   (USAGE, 0xE9),              //   USAGE (Volume Increment)    ; bit 5: 32
   (USAGE, 0xEA),              //   USAGE (Volume Decrement)    ; bit 6: 64
-  (USAGE, 0x23, 0x02),        //   Usage (WWW Home)            ; bit 7: 128
+  (USAGE, 0x35, 0x00),        //   Usage (ILLUMINATION)        ; bit 7: 128
   (USAGE, 0x94, 0x01),        //   Usage (My Computer) ; bit 0: 1
   (USAGE, 0x92, 0x01),        //   Usage (Calculator)  ; bit 1: 2
   (USAGE, 0x2A, 0x02),        //   Usage (WWW fav)     ; bit 2: 4
@@ -221,7 +222,7 @@ pub mod media_keys {
   pub const EJECT: MediaKey = [16, 0];
   pub const VOLUME_UP: MediaKey = [32, 0];
   pub const VOLUME_DOWN: MediaKey = [64, 0];
-  pub const WWW_HOME: MediaKey = [128, 0];
+  // pub const WWW_HOME: MediaKey = [128, 0];
   pub const LOCAL_MACHINE_BROWSER: MediaKey = [0, 1];
   pub const CALCULATOR: MediaKey = [0, 2];
   pub const WWW_BOOKMARKS: MediaKey = [0, 4];
@@ -230,6 +231,7 @@ pub mod media_keys {
   pub const WWW_BACK: MediaKey = [0, 32];
   pub const CONSUMER_CONTROL_CONFIGURATION: MediaKey = [0, 64];
   pub const EMAIL_READER: MediaKey = [0, 128];
+  pub const ILLUMINATION: MediaKey = [0x35, 0];
 }
 
 #[repr(packed)]
@@ -288,14 +290,18 @@ impl Keyboard {
     self.server.connected_count() > 0
   }
 
-  pub fn write(&mut self, str: &str) {
+  pub async fn write(&mut self, str: &str) {
     for char in str.as_bytes() {
-      self.letter(char);
+      self.letter(char).await;
     }
   }
 
-  pub fn letter(&mut self, char: &u8) {
+  pub async fn letter(&mut self, char: &u8) {
+    info!("Sending letter: {}", char);
     self.press(*char);
+    info!("Waiting 60 seconds");
+    Timer::after(Duration::from_secs(60)).await;
+    info!("Releasing letter: {}", char);
     self.release();
   }
 
@@ -309,7 +315,7 @@ impl Keyboard {
     self.send_report(&self.key_report);
   }
 
-  fn release(&mut self) {
+  pub fn release(&mut self) {
     self.key_report.modifiers = 0;
     self.key_report.keys.fill(0);
     self.send_report(&self.key_report);
@@ -322,7 +328,11 @@ impl Keyboard {
 
   pub fn send_media_key(&mut self, media_key: MediaKey) {
     self.input_media_keys.lock().set_from(&media_key).notify();
-    esp_idf_hal::delay::Ets::delay_ms(7);
+    esp_idf_hal::delay::Ets::delay_ms(30000);
     self.input_media_keys.lock().set_from(&[0, 0]).notify();
+  }
+
+  pub fn send_illumination_event(&mut self) {
+    self.send_media_key(media_keys::EJECT);
   }
 }

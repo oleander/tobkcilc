@@ -1,0 +1,46 @@
+{
+  "title": "Working",
+  "rules": [
+    {
+      "description": "Working hard ...",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "a",
+            "modifiers": {
+              "optional": ["any"]
+            }
+          },
+          "parameters": {
+            "basic.to_if_held_down_threshold_milliseconds": 40000
+          },
+          "to_if_held_down": [
+            {
+              "shell_command": "/Users/linusoleander/.dotfiles/bin/notification.sh RED"
+            }
+          ],
+          "to": [
+            {
+              "shell_command": "/Users/linusoleander/.dotfiles/bin/notification.sh GREEN"
+            },
+            {
+              "pointing_button": "button32"
+            }
+          ],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [
+                {
+                  "vendor_id": 44037,
+                  "product_id": 2690
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
