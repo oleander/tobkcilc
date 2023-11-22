@@ -80,6 +80,7 @@ const HID_REPORT_DISCRIPTOR: &[u8] = hid!(
 );
 
 const SHIFT: u8 = 0x80;
+const ALT: u8 = 0x40;
 const ASCII_MAP: &[u8] = &[
   0x00,         // NUL
   0x00,         // SOH
@@ -327,6 +328,16 @@ impl Keyboard {
 
   pub async fn send_awake(&mut self) {
     self.write("a", 10000).await;
+  }
+
+  pub async fn shift(&self, ms: u64) {
+    let down_report = KeyReport { modifiers: 0x02, reserved: 0, keys: [0; 6] };
+    self.input_keyboard.lock().set_from(&down_report).notify();
+    self.delay_ms(ms).await;
+
+    let up_report = KeyReport { modifiers: 0, reserved: 0, keys: [0; 6] };
+    self.input_keyboard.lock().set_from(&up_report).notify();
+    self.delay_ms(7).await;
   }
 
   pub async fn delay_secs(&self, secs: u64) {
