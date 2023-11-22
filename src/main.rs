@@ -20,14 +20,18 @@ async fn app_main() {
 
   let keyboard = keyboard::Keyboard::new();
 
-  while !keyboard.connected() {
-    keyboard.delay_secs(1).await;
-  }
+  loop {
+    info!("Waiting for connection...");
+    while !keyboard.connected() {
+      keyboard.delay_secs(1).await;
+    }
 
-  while keyboard.connected() {
-    keyboard.shift(8000).await;
-    keyboard.delay_secs(5).await;
-  }
+    info!("Connected to host");
+    while keyboard.connected() {
+      keyboard.shift(8000).await;
+      keyboard.delay_secs(5).await;
+    }
 
-  unsafe { esp_idf_sys::esp_restart(); };
+    warn!("Disconnected from host");
+  }
 }
