@@ -253,8 +253,7 @@ pub struct Keyboard {
 impl Keyboard {
   pub fn new() -> Self {
     let device = BLEDevice::take();
-    device.security().set_auth(AuthReq::Bond | AuthReq::Mitm).set_io_cap(SecurityIOCap::NoInputNoOutput);
-
+    device.security().set_auth(AuthReq::Bond).set_io_cap(SecurityIOCap::NoInputNoOutput);
 
     let server = device.get_server();
     let mut hid = BLEHIDDevice::new(server);
