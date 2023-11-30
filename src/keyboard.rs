@@ -273,7 +273,7 @@ impl Keyboard {
 
     let ble_advertising = device.get_advertising();
     ble_advertising
-      .name("tob")
+      .name("key")
       .appearance(0x03C1)
       .add_service_uuid(hid.hid_service().lock().uuid())
       .scan_response(false);
