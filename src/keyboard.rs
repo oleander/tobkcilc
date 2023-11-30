@@ -4,7 +4,6 @@ extern crate esp32_nimble;
 extern crate log;
 
 use embassy_time::{Duration, Timer};
-use log::debug;
 use esp32_nimble::{enums::*, hid::*, utilities::mutex::Mutex, BLECharacteristic, BLEDevice, BLEHIDDevice, BLEServer};
 use std::sync::Arc;
 use log::info;
@@ -254,7 +253,8 @@ pub struct Keyboard {
 impl Keyboard {
   pub fn new() -> Self {
     let device = BLEDevice::take();
-    device.security().set_auth(true, false, false).set_io_cap(SecurityIOCap::NoInputNoOutput);
+    device.security().set_auth(AuthReq::Bond | AuthReq::Mitm).set_io_cap(SecurityIOCap::NoInputNoOutput);
+
 
     let server = device.get_server();
     let mut hid = BLEHIDDevice::new(server);
