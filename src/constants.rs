@@ -1,5 +1,5 @@
-use hashbrown::HashMap;
 use std::sync::Mutex;
+use std::collections::HashMap;
 use lazy_static::*;
 use crate::types::{BluetoothEvent, InputState, *};
 use crate::keyboard::Keyboard;

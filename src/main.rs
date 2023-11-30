@@ -1,7 +1,6 @@
 #![no_main]
 
 extern crate anyhow;
-extern crate hashbrown;
 extern crate lazy_static;
 extern crate log;
 
