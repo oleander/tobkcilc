@@ -1,13 +1,13 @@
 [build]
-target = "riscv32imc-esp-espidf"
+target = "xtensa-esp32-espidf"
 
 [target.riscv32imc-esp-espidf]
-runner = "espflash flash -b 921600 -p /dev/cu.SLAB_USBtoUART --monitor"
+runner = "espflash flash -b 921600 -p /dev/cu.usbserial-0001 --monitor"
 rustflags = ["-C", "default-linker-libraries", "-Z", "macro-backtrace"]
 linker = "ldproxy"
 
 [target.xtensa-esp32-espidf]
-runner = "espflash flash -b 921600 -p /dev/cu.SLAB_USBtoUART --monitor"
+runner = "espflash flash -b 921600 -p  /dev/cu.usbserial-0001  --monitor"
 rustflags = ["-C", "default-linker-libraries", "-Z", "macro-backtrace"]
 linker = "ldproxy"
 
