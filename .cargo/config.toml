@@ -7,12 +7,12 @@ rustflags = ["-C", "default-linker-libraries", "-Z", "macro-backtrace"]
 linker = "ldproxy"
 
 [target.xtensa-esp32-espidf]
-runner = "espflash flash -b 921600 -p  /dev/cu.usbserial-0001  --monitor"
+runner = "espflash flash -b 921600 --monitor -p /dev/tty.wchusbserial120"
 rustflags = ["-C", "default-linker-libraries", "-Z", "macro-backtrace"]
 linker = "ldproxy"
 
 [unstable]
 build-std = ["std", "panic_abort"]
 
-[env]
-RUST_LOG = "debug"
+# [env]
+# RUST_LOG = "debug"
