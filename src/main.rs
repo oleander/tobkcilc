@@ -7,8 +7,11 @@ extern crate log;
 
 mod keyboard;
 
+use std::sync::Arc;
+
 use keyboard::Keyboard;
 use log::{debug, info, warn};
+use tokio::sync::Notify;
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
@@ -18,12 +21,19 @@ async fn app_main() {
   esp_idf_svc::timer::embassy_time::driver::link();
   log::set_max_level(log::LevelFilter::Info);
 
-  let keyboard = keyboard::Keyboard::new();
+  let mut keyboard = keyboard::Keyboard::new();
 
-  info!("Waiting for connection...");
-  while !keyboard.connected() {
-    keyboard.delay_secs(1).await;
-  }
+  let notify = Arc::new(Notify::new());
+  let notify_clone = notify.clone();
+
+  keyboard.on_authentication_complete(move |conn| {
+    info!("Terrain Command connected to {:?}", conn);
+    notify_clone.notify_one();
+  });
+
+  info!("Waiting for iPhone to connect");
+  notify.notified().await;
+  info!("iPhone connected");
 
   info!("Connected to host");
   while keyboard.connected() {

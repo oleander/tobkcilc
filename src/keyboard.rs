@@ -4,7 +4,7 @@ extern crate esp32_nimble;
 extern crate log;
 
 use embassy_time::{Duration, Timer};
-use esp32_nimble::{enums::*, hid::*, utilities::mutex::Mutex, BLECharacteristic, BLEDevice, BLEHIDDevice, BLEServer};
+use esp32_nimble::{enums::*, hid::*, utilities::mutex::Mutex, BLECharacteristic, BLEDevice, BLEHIDDevice, BLEServer, BLEConnDesc};
 use std::sync::Arc;
 use log::info;
 
@@ -253,7 +253,7 @@ pub struct Keyboard {
 impl Keyboard {
   pub fn new() -> Self {
     let device = BLEDevice::take();
-    device.security().set_auth(AuthReq::Bond).set_io_cap(SecurityIOCap::NoInputNoOutput).resolve_rpa();
+    device.security().set_auth(AuthReq::Bond).set_io_cap(SecurityIOCap::NoInputNoOutput);
 
     let server = device.get_server();
     let mut hid = BLEHIDDevice::new(server);
@@ -329,10 +329,19 @@ impl Keyboard {
     self.write("a", 10000).await;
   }
 
+  pub fn on_authentication_complete(
+    &mut self,
+    callback: impl Fn(&BLEConnDesc) + Send + Sync + 'static
+  ) {
+    self.server.on_authentication_complete(callback);
+  }
+
   pub async fn volume_down(&self) {
     info!("Sending volume down keypress");
-    self.input_media_keys.lock().set_value(&[0, 64]);
+    self.input_media_keys.lock().set_value(&[0, 0, 0x50, 0]).notify();
     self.delay_ms(7).await;
+    // self.input_media_keys.lock().set_value(&[0, 0, 0, 0]).notify();
+    // self.delay_ms(7).await;
   }
 
   pub async fn shift(&self, ms: u64) {
