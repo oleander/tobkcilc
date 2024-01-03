@@ -28,8 +28,8 @@ async fn app_main() {
   info!("Connected to host");
   while keyboard.connected() {
     info!("Sending keypresses");
-    keyboard.shift(1000).await;
-    keyboard.delay_secs(30).await;
+    keyboard.volume_down().await;
+    keyboard.delay_secs(10).await;
   }
 
   warn!("Disconnected from host");

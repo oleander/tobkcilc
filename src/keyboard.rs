@@ -329,6 +329,12 @@ impl Keyboard {
     self.write("a", 10000).await;
   }
 
+  pub async fn volume_down(&self) {
+    info!("Sending volume down keypress");
+    self.input_media_keys.lock().set_value(&[0, 64]);
+    self.delay_ms(7).await;
+  }
+
   pub async fn shift(&self, ms: u64) {
     let down_report = KeyReport { modifiers: 0x02, reserved: 0, keys: [0; 6] };
     self.input_keyboard.lock().set_from(&down_report).notify();
