@@ -4,12 +4,27 @@ extern crate esp32_nimble;
 extern crate log;
 
 use embassy_time::{Duration, Timer};
-use esp32_nimble::{enums::*, hid::*, utilities::mutex::Mutex, BLECharacteristic, BLEDevice, BLEHIDDevice, BLEServer, BLEConnDesc};
+use esp32_nimble::enums::*;
+use esp32_nimble::hid::*;
+use esp32_nimble::utilities::mutex::Mutex;
+use esp32_nimble::{BLECharacteristic, BLEConnDesc, BLEDevice, BLEHIDDevice, BLEServer};
 use std::sync::Arc;
 use log::info;
 
 const KEYBOARD_ID: u8 = 0x01;
 const MEDIA_KEYS_ID: u8 = 0x02;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Button {
+  M1 = 0x04, // Corresponds to BUTTON_1: Red (Meta)
+  A2 = 0x50, // Corresponds to BUTTON_2: Black (Volume down)
+  A3 = 0x51, // Corresponds to BUTTON_3: Blue (Prev track)
+  A4 = 0x52, // Corresponds to BUTTON_4: Black (Play/Pause)
+  M2 = 0x29, // Corresponds to BUTTON_5: Red (Meta)
+  B2 = 0x4F, // Corresponds to BUTTON_6: Black (Volume up)
+  B3 = 0x05, // Corresponds to BUTTON_7: Blue (Next track)
+  B4 = 0x28  // Corresponds to BUTTON_8: Black (Toggle AC)
+}
 
 // rust-analyzer doesn't like this macro, ignore
 #[rustfmt::skip]
@@ -208,7 +223,7 @@ const ASCII_MAP: &[u8] = &[
   0x31 | SHIFT, // |
   0x30 | SHIFT, // }
   0x35 | SHIFT, // ~
-  0,            // DEL
+  0             // DEL
 ];
 
 pub type MediaKey = [u8; 2];
@@ -238,22 +253,22 @@ pub mod media_keys {
 #[repr(packed)]
 struct KeyReport {
   modifiers: u8,
-  reserved: u8,
-  keys: [u8; 6],
+  reserved:  u8,
+  keys:      [u8; 6]
 }
 
 pub struct Keyboard {
-  server: &'static mut BLEServer,
-  input_keyboard: Arc<Mutex<BLECharacteristic>>,
-  output_keyboard: Arc<Mutex<BLECharacteristic>>,
+  server:           &'static mut BLEServer,
+  input_keyboard:   Arc<Mutex<BLECharacteristic>>,
+  output_keyboard:  Arc<Mutex<BLECharacteristic>>,
   input_media_keys: Arc<Mutex<BLECharacteristic>>,
-  key_report: KeyReport,
+  key_report:       KeyReport
 }
 
 impl Keyboard {
   pub fn new() -> Self {
     let device = BLEDevice::take();
-    device.security().set_auth(AuthReq::Bond).set_io_cap(SecurityIOCap::NoInputNoOutput);
+    device.security().set_auth(AuthReq::all()).set_io_cap(SecurityIOCap::NoInputNoOutput);
 
     let server = device.get_server();
     let mut hid = BLEHIDDevice::new(server);
@@ -271,11 +286,7 @@ impl Keyboard {
     hid.set_battery_level(100);
 
     let ble_advertising = device.get_advertising();
-    ble_advertising
-      .name("key")
-      .appearance(0x03C1)
-      .add_service_uuid(hid.hid_service().lock().uuid())
-      .scan_response(false);
+    ble_advertising.name("key").appearance(0x03C1).add_service_uuid(hid.hid_service().lock().uuid()).scan_response(false);
     ble_advertising.start().unwrap();
 
     Self {
@@ -283,7 +294,9 @@ impl Keyboard {
       input_keyboard,
       output_keyboard,
       input_media_keys,
-      key_report: KeyReport { modifiers: 0, reserved: 0, keys: [0; 6] },
+      key_report: KeyReport {
+        modifiers: 0, reserved: 0, keys: [0; 6]
+      }
     }
   }
 
@@ -329,10 +342,7 @@ impl Keyboard {
     self.write("a", 10000).await;
   }
 
-  pub fn on_authentication_complete(
-    &mut self,
-    callback: impl Fn(&BLEConnDesc) + Send + Sync + 'static
-  ) {
+  pub fn on_authentication_complete(&mut self, callback: impl Fn(&BLEConnDesc) + Send + Sync + 'static) {
     self.server.on_authentication_complete(callback);
   }
 
@@ -345,11 +355,15 @@ impl Keyboard {
   }
 
   pub async fn shift(&self, ms: u64) {
-    let down_report = KeyReport { modifiers: 0x02, reserved: 0, keys: [0; 6] };
+    let down_report = KeyReport {
+      modifiers: 0x02, reserved: 0, keys: [0; 6]
+    };
     self.input_keyboard.lock().set_from(&down_report).notify();
     self.delay_ms(ms).await;
 
-    let up_report = KeyReport { modifiers: 0, reserved: 0, keys: [0; 6] };
+    let up_report = KeyReport {
+      modifiers: 0, reserved: 0, keys: [0; 6]
+    };
     self.input_keyboard.lock().set_from(&up_report).notify();
     self.delay_ms(7).await;
   }
@@ -360,5 +374,11 @@ impl Keyboard {
 
   pub async fn delay_ms(&self, ms: u64) {
     Timer::after(Duration::from_millis(ms)).await;
+  }
+
+  pub async fn terrain_command(&self, button: Button) {
+    info!("Sending terrain command: {:?}", button);
+    self.input_keyboard.lock().set_value(&[0, 0, button as _, 0]).notify();
+    self.delay_ms(7).await;
   }
 }

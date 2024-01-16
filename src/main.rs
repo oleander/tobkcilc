@@ -5,11 +5,15 @@
 extern crate embassy_time;
 extern crate log;
 
+use rand::seq::SliceRandom;
+use rand::Rng;
+
 mod keyboard;
 
 use std::sync::Arc;
 
 use keyboard::Keyboard;
+use keyboard::Button;
 use log::{debug, info, warn};
 use tokio::sync::Notify;
 
@@ -25,12 +29,25 @@ async fn app_main() {
 
   let notify = Arc::new(Notify::new());
   let notify_clone = notify.clone();
+  let buttons = [
+    Button::M1,
+    Button::A2,
+    Button::A3,
+    Button::A4,
+    Button::M2,
+    Button::B2,
+    Button::B3,
+    Button::B4
+  ];
 
   keyboard.on_authentication_complete(move |conn| {
     info!("Terrain Command connected to {:?}", conn);
     notify_clone.notify_one();
   });
 
+  while !keyboard.connected() {
+    keyboard.delay_secs(1).await;
+  }
   info!("Waiting for iPhone to connect");
   notify.notified().await;
   info!("iPhone connected");
@@ -38,7 +55,8 @@ async fn app_main() {
   info!("Connected to host");
   while keyboard.connected() {
     info!("Sending keypresses");
-    keyboard.volume_down().await;
+    let random_button = buttons.as_slice().choose(&mut rand::thread_rng()).unwrap();
+    keyboard.terrain_command(*random_button).await;
     keyboard.delay_secs(10).await;
   }
 
