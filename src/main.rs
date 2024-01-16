@@ -11,9 +11,7 @@ use rand::Rng;
 mod keyboard;
 
 use std::sync::Arc;
-
-use keyboard::Keyboard;
-use keyboard::Button;
+use keyboard::{Button, Keyboard};
 use log::{debug, info, warn};
 use tokio::sync::Notify;
 
@@ -29,16 +27,7 @@ async fn app_main() {
 
   let notify = Arc::new(Notify::new());
   let notify_clone = notify.clone();
-  let buttons = [
-    Button::M1,
-    Button::A2,
-    Button::A3,
-    Button::A4,
-    Button::M2,
-    Button::B2,
-    Button::B3,
-    Button::B4
-  ];
+  let buttons = [Button::M1, Button::A2, Button::A3, Button::A4, Button::M2, Button::B2, Button::B3, Button::B4];
 
   keyboard.on_authentication_complete(move |conn| {
     info!("Terrain Command connected to {:?}", conn);
@@ -63,5 +52,7 @@ async fn app_main() {
   warn!("Disconnected from host");
   warn!("Will restart in 5 seconds");
   keyboard.delay_secs(5).await;
-  unsafe { esp_idf_sys::esp_restart(); }
+  unsafe {
+    esp_idf_sys::esp_restart();
+  }
 }
