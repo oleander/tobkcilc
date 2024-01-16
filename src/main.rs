@@ -20,7 +20,7 @@ mod actions {
 
   pub static VOLUME_DOWN: [Button; 2] = [Button::A2, Button::A2];
   pub static VOLUME_UP: [Button; 2] = [Button::B2, Button::B2];
-  pub static OPEN_MAP: [Button; 2] = [Button::M1, Button::B2];
+  pub static OPEN_MAP: [Button; 2] = [Button::M2, Button::B2];
 }
 
 #[no_mangle]
@@ -58,7 +58,7 @@ async fn app_main() {
     info!("Sending keypresses");
     for action in actions.iter() {
       keyboard.terrain_commands(*action).await;
-      keyboard.delay_secs(1).await;
+      keyboard.delay_secs(15).await;
     }
   }
 
