@@ -15,6 +15,14 @@ use keyboard::{Button, Keyboard};
 use log::{debug, info, warn};
 use tokio::sync::Notify;
 
+mod actions {
+  use super::keyboard::{Button, *};
+
+  pub static VOLUME_DOWN: [Button; 2] = [Button::A2, Button::A2];
+  pub static VOLUME_UP: [Button; 2] = [Button::B2, Button::B2];
+  pub static OPEN_MAP: [Button; 2] = [Button::M1, Button::B2];
+}
+
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
 async fn app_main() {
@@ -27,7 +35,11 @@ async fn app_main() {
 
   let notify = Arc::new(Notify::new());
   let notify_clone = notify.clone();
-  let buttons = [Button::M1, Button::A2, Button::A3, Button::A4, Button::M2, Button::B2, Button::B3, Button::B4];
+  let actions = [
+    actions::VOLUME_DOWN,
+    actions::VOLUME_UP,
+    actions::OPEN_MAP,
+  ];
 
   keyboard.on_authentication_complete(move |conn| {
     info!("Terrain Command connected to {:?}", conn);
@@ -44,9 +56,10 @@ async fn app_main() {
   info!("Connected to host");
   while keyboard.connected() {
     info!("Sending keypresses");
-    let random_button = buttons.as_slice().choose(&mut rand::thread_rng()).unwrap();
-    keyboard.terrain_command(*random_button).await;
-    keyboard.delay_secs(10).await;
+    for action in actions.iter() {
+      keyboard.terrain_commands(*action).await;
+      keyboard.delay_secs(1).await;
+    }
   }
 
   warn!("Disconnected from host");

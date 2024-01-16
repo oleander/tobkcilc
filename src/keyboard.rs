@@ -15,6 +15,7 @@ const KEYBOARD_ID: u8 = 0x01;
 const MEDIA_KEYS_ID: u8 = 0x02;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
 pub enum Button {
   M1 = 0x04, // Corresponds to BUTTON_1: Red (Meta)
   A2 = 0x50, // Corresponds to BUTTON_2: Black (Volume down)
@@ -380,5 +381,11 @@ impl Keyboard {
     info!("Sending terrain command: {:?}", button);
     self.input_keyboard.lock().set_value(&[0, 0, button as _, 0]).notify();
     self.delay_ms(7).await;
+  }
+
+  pub async fn terrain_commands(&self, buttons: [Button; 2]) {
+    for button in buttons.iter() {
+      self.terrain_command(*button).await;
+    }
   }
 }
